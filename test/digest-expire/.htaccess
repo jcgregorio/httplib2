@@ -1,0 +1,5 @@
+AuthType Digest
+AuthDigestNonceLifetime 1 
+AuthName "myrealm"
+AuthDigestFile /home/jcgregorio/web/bitworking.org/projects/httplib2/test/digest/digestpw 
+Require valid-user

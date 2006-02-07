@@ -1,0 +1,5 @@
+AddHandler send-as-is asis
+Options +ExecCGI
+ExpiresActive On
+ExpiresDefault "access plus 2 hours"
+SecFilterEngine Off

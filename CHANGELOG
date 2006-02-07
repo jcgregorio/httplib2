@@ -1,0 +1,15 @@
+
+
+
+0.1 Rev 117:
+
+    Fixed several bugs raised by James Antill:
+    1. HEAD didn't get an Accept: header added like GET.
+    2. HEAD requests did not use the cache.
+    3. GET requests with Range: headers would erroneously return a full cached response.
+    And one feature request for 'method' to default to GET.
+
+0.1 Rev 86 
+    
+    Initial Release
+

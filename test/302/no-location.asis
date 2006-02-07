@@ -1,0 +1,6 @@
+Content-Type: text/plain
+Status: 302 Found
+
+This is content.
+Note there is no Location header given.
+This should err.

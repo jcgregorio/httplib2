@@ -1,0 +1,171 @@
+<html>
+<head>
+     <!--#include virtual="header.html" -->
+    <title>Joe Gregorio | BitWorking | Projects | httplib2.py</title>
+</head>
+<body class='main' id="top" name="top" >
+    <div class="body">
+        <!--#include virtual="titlebar.html" -->
+
+        <div class="content">
+            
+            <div class="item">
+
+                <h2>Httplib2</h2>
+                <p>A comprehensive HTTP client library, <code>httplib2.py</code> 
+                supports many features left out of other HTTP libraries.
+                </p>
+                <dl>
+                    <dt>HTTP and HTTPS</dt>
+                    <dd>HTTPS support is only available if the socket module was compiled with SSL support.
+                    </dd>
+
+                    <dt>Keep-Alive</dt>
+                    <dd>Supports HTTP 1.1 Keep-Alive, keeping the socket 
+                    open and performing multiple requests over the same connection
+                    if possible.
+                    </dd>
+
+                    <dt>Authentication</dt>
+                    <dd>The following three types of HTTP Authentication are supported. 
+                    These can be used over both HTTP and HTTPS.
+                    <ul>
+                        <li><a href="http://www.faqs.org/rfcs/rfc2617.html">Digest</a></li>
+                        <li><a href="http://www.faqs.org/rfcs/rfc2617.html">Basic</a></li>
+                        <li><a href="http://www.xml.com/pub/a/2003/12/17/dive.html">WSSE</a></li>
+                    </ul>
+                    </dd>
+
+                    <dt>Caching</dt>
+                    <dd>The module can optionally operate with a private
+                    cache that understands the Cache-Control: header and
+                    uses both the ETag and Last-Modified cache validators.
+                    </dd>
+
+                    <dt>All Methods</dt>
+                    <dd>The module can handle any HTTP request method, not just GET and POST.</dd>
+
+                    <dt>Redirects</dt>
+                    <dd>Automatically follows 3XX redirects on GETs.</dd>
+
+                    <dt>Compression</dt>
+                    <dd>Handles both 'compress' and 'gzip' types of compression.</dd>
+
+                    <dt>Lost update support</dt>
+                    <dd>Automatically adds back ETags into PUT requests to resources
+                    we have already cached. This implements Section 3.2 of 
+                    <a href="http://www.w3.org/1999/04/Editing/#Table">Detecting the Lost Update Problem Using Unreserved Checkout</a></dd>
+
+                    <dt>Unit Tested</dt>
+                    <dd>A large and growing set of unit tests.</dd>
+
+                </dl>
+
+<h2>Usage</h2>
+
+<p>A simple retrieval:</p>
+
+<pre><code>    import httplib2
+    h = httplib2.Http(".cache")
+    (resp_headers, content) = h.request("http://example.org/", "GET")
+</code></pre>
+
+<p>The 'content' is the content retrieved from the URL.
+The content is already decompressed or unzipped if necessary.
+</p>
+
+<p>To PUT some content to a server that uses SSL
+and Basic authentication:</p>
+
+<pre><code>    import httplib2
+    h = httplib2.Http(".cache")
+    h.add_credentals('name', 'password')
+    (resp, content) = h.request("https://example.org/chapter/2", 
+        "PUT", body="This is text", 
+        headers={'content-type':'text/plain'} )
+</code></pre>
+
+<p>Use the Cache-Control: header to control
+   how the caching operates.</p>
+
+<pre><code>    import httplib2
+    h = httplib2.Http(".cache")
+    (resp, content) = h.request("http://bitworking.org/", "GET")
+    ...
+    (resp, content) = h.request("http://bitworking.org/", "GET", 
+        headers={'cache-control':'no-cache'})
+</code></pre>
+
+<p>The first request will be cached and since this is a request to 
+bitworking.org it will be set to be cached for two hours, because
+that is how I have my server configured.
+Any subsequent GET to that URI will return the value from the
+on-disk cache and no request will be made to the server.
+You can use the Cache-Control: header to change the caches behavior and
+in this example the second request adds the Cache-Control: header with a value
+of 'no-cache' which tells the library that the cached copy
+must not be used when handling this request.
+</p>
+
+<h2>Requirements</h2>
+
+<p>Requires Python 2.4 or later. Does not require
+any libraries beyond what is found in the core library.</p>
+
+<h2>To Do</h2>
+
+<p>This module is not perfect and needs the following:</p>
+<ul>
+    <li>Support for Proxies</li>
+    <li>A setup.py script</li>
+    <li>A pluggable store for the cache. Right now the store is just flat files in a directory. 
+      I would like to have plugins that allow keeping the cache in Berkeley DB, Squid, MySQL, etc.</li>
+    <li>More unit tests</li>
+</ul>
+
+<h2>Project Goal</h2>
+
+<p>To become a worthy addition to the Pyhton core library.</p>
+
+<h2>Additional Information</h2>
+
+<p>
+   <dl>
+       <dt>Author</dt>
+       <dd>Joe Gregorio</dd>
+
+       <dt>License</dt>
+       <dd>MIT</dd>
+
+       <dt>Contributors</dt>
+       <dd>(Your name here)</dd>
+    </dl>
+</p>
+    
+<h2>Download</h2>
+
+<p><a href="httplib2.py.txt">httplib2.py</a> - The uncompressed source code of the single file
+that constitutes this module.
+</p>
+
+<p> <a href="httplib2test.py.txt">httplibi2test.py</a> - The uncompressed source code of the single file
+that constitutes this modules unit test suite.
+</p>
+
+<p> <a href="test">test</a> - The resources used in the unit test cases. </p>
+
+<h2>Revision History</h2>
+   <dl>
+       <dt>0.1</dt>
+	   <dd>Initial Release.</dd>
+   </dl>
+ 
+<p>This page last updated on: $LastChangedDate$.</p>
+
+            </div>
+        </div>
+     <!--#include virtual="footer.html" -->
+    </div>
+</body>
+
+</html>

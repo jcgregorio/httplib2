@@ -1,0 +1,11 @@
+Status: 300 Mutliple Choices
+Content-Type: text/html
+
+<html>
+  <body>
+     <ol>
+        <li><a href="http://example.com/">Choice A</a></li>
+        <li><a href="http://example.org">Choice B</a></li>
+     </ol>
+  </body>
+</html>
