@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup(name='httplib2',
-        version='0.1.0', 
+        version='0.1.1', 
         author='Joe Gregorio',
         author_email='joe@bitworking.org',
         url='http://bitworking.org/projects/httplib2/',

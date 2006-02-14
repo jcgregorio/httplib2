@@ -4,23 +4,15 @@ httplib2
 A caching http interface that supports ETags and gzip
 to conserve bandwidth. 
 
-Requires Python 2.4 or later
+Requires Python 2.3 or later
+
 """
 
 __author__ = "Joe Gregorio (joe@bitworking.org)"
 __copyright__ = "Copyright 2006, Joe Gregorio"
 __contributors__ = []
 __license__ = "MIT"
-__history__ = """
-Fixed several bugs raised by James Antill:
-    1. HEAD didn't get an Accept: header added like GET.
-    2. HEAD requests did not use the cache.
-    3. GET requests with Range: headers would erroneously return a full cached response.
-
-and one feature request for 'method' to default to GET.
-
-"""
-__version__ = "0.1.0 ($Rev$)"
+__version__ = "$Rev$"
 
 import re 
 import md5
@@ -38,6 +30,23 @@ import time
 import random
 import sha
 from gettext import gettext as _
+
+# Python 2.3 support
+if 'sorted' not in __builtins__:
+    def sorted(seq):
+        seq.sort()
+        return seq
+
+# Python 2.3 support
+def HTTPResponse__getheaders(self):
+    """Return list of (header, value) tuples."""
+    if self.msg is None:
+        print "================================"
+        raise httplib.ResponseNotReady()
+    return self.msg.items()
+
+if not hasattr(httplib.HTTPResponse, 'getheaders'):
+    httplib.HTTPResponse.getheaders = HTTPResponse__getheaders
 
 # All exceptions raised here derive from HttpLib2Error
 class HttpLib2Error(Exception): pass
@@ -412,14 +421,17 @@ class Http:
             try:
                 conn.request(method, request_uri, body, headers)
                 response = conn.getresponse()
-                content = response.read()
-                response = Response(response)
-                content = _decompressContent(response, content)
-            except httplib.BadStatusLine, e:
-                if not e.line:
+            except:
+                if i == 0:
                     conn.close()
                     conn.connect()
                     continue
+                else:
+                    raise
+            else:
+                content = response.read()
+                response = Response(response)
+                content = _decompressContent(response, content)
 
             break;
         return (response, content)

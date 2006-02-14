@@ -17,6 +17,12 @@ __version__ = "0.1 ($Rev: 118 $)"
 
 import unittest, httplib2, os, urlparse, time, base64
 
+
+# Python 2.3 support
+if not hasattr(unittest.TestCase, 'assertTrue'):
+    unittest.TestCase.assertTrue = unittest.TestCase.failUnless
+    unittest.TestCase.assertFalse = unittest.TestCase.failIf
+
 # The test resources base uri
 base = 'http://bitworking.org/projects/httplib2/test/'
 #base = 'http://localhost/projects/httplib2/test/'
