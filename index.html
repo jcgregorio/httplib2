@@ -65,35 +65,36 @@
 
 <p>A simple retrieval:</p>
 
-<pre><code>    import httplib2
-    h = httplib2.Http(".cache")
-    (resp_headers, content) = h.request("http://example.org/", "GET")
+<pre><code>import httplib2
+h = httplib2.Http(".cache")
+resp, content = h.request("http://example.org/", "GET")
 </code></pre>
 
 <p>The 'content' is the content retrieved from the URL.
 The content is already decompressed or unzipped if necessary.
+The 'resp' contains all the response headers.
 </p>
 
 <p>To PUT some content to a server that uses SSL
 and Basic authentication:</p>
 
-<pre><code>    import httplib2
-    h = httplib2.Http(".cache")
-    h.add_credentals('name', 'password')
-    (resp, content) = h.request("https://example.org/chapter/2", 
-        "PUT", body="This is text", 
-        headers={'content-type':'text/plain'} )
+<pre><code>import httplib2
+h = httplib2.Http(".cache")
+h.add_credentals('name', 'password')
+resp, content = h.request("https://example.org/chap/2", 
+    "PUT", body="This is text", 
+    headers={'content-type':'text/plain'} )
 </code></pre>
 
 <p>Use the Cache-Control: header to control
    how the caching operates.</p>
 
-<pre><code>    import httplib2
-    h = httplib2.Http(".cache")
-    (resp, content) = h.request("http://bitworking.org/", "GET")
-    ...
-    (resp, content) = h.request("http://bitworking.org/", "GET", 
-        headers={'cache-control':'no-cache'})
+<pre><code>import httplib2
+h = httplib2.Http(".cache")
+resp, content = h.request("http://bitworking.org/")
+ ...
+resp, content = h.request("http://bitworking.org/", 
+    headers={'cache-control':'no-cache'})
 </code></pre>
 
 <p>The first request will be cached and since this is a request to 
