@@ -1,61 +1,55 @@
 from distutils.core import setup
+VERSION = '0.1.1'
 setup(name='httplib2',
-        version='0.1.1', 
+        version=VERSION, 
         author='Joe Gregorio',
         author_email='joe@bitworking.org',
         url='http://bitworking.org/projects/httplib2/',
+        download_url='http://bitworking.org/projects/httplib2/dist/httplib2-%s.tar.gz' % VERSION,
         description='A comprehensive HTTP client library.',
+        license='MIT',
         long_description="""
-Httplib2
-========
-A comprehensive HTTP client library, httplib2.py supports many features left out of other HTTP libraries.
 
-HTTP and HTTPS
---------------
-HTTPS support is only available if the socket module was compiled with SSL support. 
+A comprehensive HTTP client library, ``httplib2`` supports many features left out of other HTTP libraries.
 
-    
-Keep-Alive
-----------
-Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible. 
+**HTTP and HTTPS**
+  HTTPS support is only available if the socket module was compiled with SSL support. 
+ 
 
-    
-Authentication
---------------
-The following three types of HTTP Authentication are supported. These can be used over both HTTP and HTTPS.
-
-* Digest
-* Basic
-* WSSE
-
-Caching
--------
-The module can optionally operate with a private cache that understands the Cache-Control: header and uses both the ETag and Last-Modified cache validators. 
+**Keep-Alive**
+  Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible. 
 
 
-All Methods
------------
-The module can handle any HTTP request method, not just GET and POST.
+**Authentication**
+  The following three types of HTTP Authentication are supported. These can be used over both HTTP and HTTPS.
+
+  * Digest
+  * Basic
+  * WSSE
+
+**Caching**
+  The module can optionally operate with a private cache that understands the Cache-Control: 
+  header and uses both the ETag and Last-Modified cache validators. 
 
 
-Redirects
----------
-Automatically follows 3XX redirects on GETs.
+**All Methods**
+  The module can handle any HTTP request method, not just GET and POST.
 
 
-Compression
------------
-Handles both 'compress' and 'gzip' types of compression.
+**Redirects**
+  Automatically follows 3XX redirects on GETs.
 
 
-Lost update support
--------------------
-Automatically adds back ETags into PUT requests to resources we have already cached. This implements Section 3.2 of Detecting the Lost Update Problem Using Unreserved Checkout
+**Compression**
+  Handles both 'compress' and 'gzip' types of compression.
 
 
-Unit Tested
------------
-A large and growing set of unit tests.
+**Lost update support**
+  Automatically adds back ETags into PUT requests to resources we have already cached. This implements Section 3.2 of Detecting the Lost Update Problem Using Unreserved Checkout
+
+
+**Unit Tested**
+  A large and growing set of unit tests.
         """,
         py_modules=['httplib2'],
         classifiers=[
