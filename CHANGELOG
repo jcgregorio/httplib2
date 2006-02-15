@@ -13,6 +13,8 @@
     Xavier Verges Farrero <xavier_verges@es.ibm.com> supplied
     what I needed to make the library work with Python 2.3.
 
+    I added distutils based setup.py.
+
 0.1 Rev 86 
     
     Initial Release

@@ -109,15 +109,27 @@ must not be used when handling this request.
 
 <h2>Requirements</h2>
 
-<p>Requires Python 2.4 or later. Does not require
+<p>Requires Python 2.3 or later. Does not require
 any libraries beyond what is found in the core library.</p>
+
+<h2>Download/Installation</h2>
+
+<p>The httplib2 module is shipped as a distutils package.  To install
+the library, first unpack the distribution archive, and issue the following
+command:</p>
+
+<pre><code>$ python setup.py install</code></pre>
+
+<p><a href="dist">Download the distribution archives from here</a>. </p>
+
+<p> <a href="test">The resources used in the unit test cases</a>
+  are available also. More documentation on them will be forthcoming.</p>
 
 <h2>To Do</h2>
 
 <p>This module is not perfect and needs the following:</p>
 <ul>
     <li>Support for Proxies</li>
-    <li>A setup.py script</li>
     <li>A pluggable store for the cache. Right now the store is just flat files in a directory. 
       I would like to have plugins that allow keeping the cache in Berkeley DB, Squid, MySQL, etc.</li>
     <li>More unit tests</li>
@@ -142,25 +154,7 @@ any libraries beyond what is found in the core library.</p>
     </dl>
 </p>
     
-<h2>Download</h2>
-
-<p><a href="httplib2.py.txt">httplib2.py</a> - The uncompressed source code of the single file
-that constitutes this module.
-</p>
-
-<p> <a href="httplib2test.py.txt">httplibi2test.py</a> - The uncompressed source code of the single file
-that constitutes this modules unit test suite.
-</p>
-
-<p> <a href="test">test</a> - The resources used in the unit test cases. </p>
-
-<h2>Revision History</h2>
-   <dl>
-       <dt>0.1</dt>
-	   <dd>Initial Release.</dd>
-   </dl>
- 
-<p>This page last updated on: $LastChangedDate$.</p>
+  <p style="font-size: small">This page last updated on: $LastChangedDate$.</p>
 
             </div>
         </div>
