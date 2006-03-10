@@ -51,7 +51,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 **Unit Tested**
   A large and growing set of unit tests.
         """,
-        py_modules=['httplib2'],
+        packages=['httplib2'],
         classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',

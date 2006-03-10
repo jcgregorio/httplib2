@@ -1,5 +1,3 @@
-httplib2
-setup.py
 README
-CHANGELOG
-httplib2test.py
+setup.py
+httplib2/__init__.py
