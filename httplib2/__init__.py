@@ -31,6 +31,9 @@ import random
 import sha
 from gettext import gettext as _
 
+# The httplib debug level, set to a non-zero value to get debug output
+debuglevel = 0
+
 # Python 2.3 support
 if 'sorted' not in __builtins__:
     def sorted(seq):
@@ -519,6 +522,7 @@ class Http:
         if not self.connections.has_key(authority):
             connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
             conn = self.connections[authority] = connection_type(authority)
+            conn.set_debuglevel(debuglevel)
         else:
             conn = self.connections[authority]
 
