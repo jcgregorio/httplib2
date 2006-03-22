@@ -10,7 +10,7 @@ Requires Python 2.3 or later
 
 __author__ = "Joe Gregorio (joe@bitworking.org)"
 __copyright__ = "Copyright 2006, Joe Gregorio"
-__contributors__ = []
+__contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)"]
 __license__ = "MIT"
 __version__ = "$Rev$"
 
@@ -29,6 +29,7 @@ import calendar
 import time
 import random
 import sha
+import hmac
 from gettext import gettext as _
 
 # The httplib debug level, set to a non-zero value to get debug output
@@ -58,7 +59,7 @@ class RedirectMissingLocation(HttpLib2Error): pass
 class RedirectLimit(HttpLib2Error): pass
 class FailedToDecompressContent(HttpLib2Error): pass
 class UnimplementedDigestAuthOptionError(HttpLib2Error): pass
-class IllFormedDigestChallengeError(HttpLib2Error): pass
+class UnimplementedHmacDigestAuthOptionError(HttpLib2Error): pass
 
 # Open Items:
 # -----------
@@ -107,9 +108,9 @@ def _parse_cache_control(headers):
         retval = dict(parts_with_args + parts_wo_args)
     return retval 
 
-WWW_AUTH = re.compile("^(?:,?\s*(\w+)\s*=\s*\"([^\"]*?)\")(.*)$")
+WWW_AUTH = re.compile(r"^(?:,?\s*([a-zA-Z0-9_-]+)\s*=\s*\"((?:[^\\\"]|\\.)*?)\")(.*)$")
 # Yes, some parameters don't have quotes. Why again am I spending so much time doing HTTP?
-WWW_AUTH2 = re.compile("^(?:,?\s*(\w+)\s*=\s*(\w+))(.*)$")
+WWW_AUTH2 = re.compile(r"^(?:,?\s*([a-zA-Z0-9_-]+)\s*=\s*(\w+))(.*)$")
 def _parse_www_authenticate(headers, headername='www-authenticate'):
     """Returns a dictionary of dictionaries, one dict
     per auth_scheme."""
@@ -302,7 +303,7 @@ class DigestAuthentication(Authentication):
         self.challenge['qop'] = ('auth' in [x.strip() for x in qop.split()]) and 'auth' or None
         if self.challenge['qop'] is None:
             raise UnimplementedDigestAuthOption( _("Unsupported value for qop: %s." % qop))
-        self.challenge['algorithm'] = self.challenge.get('algorith', 'MD5')
+        self.challenge['algorithm'] = self.challenge.get('algorithm', 'MD5')
         if self.challenge['algorithm'] != 'MD5':
             raise UnimplementedDigestAuthOption( _("Unsupported value for algorithm: %s." % self.challenge['algorithm']))
         self.A1 = "".join([self.credentials[0], ":", self.challenge['realm'], ":", self.credentials[1]])   
@@ -348,6 +349,71 @@ class DigestAuthentication(Authentication):
         return False
 
 
+class HmacDigestAuthentication(Authentication):
+    """Adapted from Robert Sayre's code and DigestAuthentication above."""
+    __author__ = "Thomas Broyer (t.broyer@ltgt.net)"
+
+    def __init__(self, credentials, host, request_uri, headers, response, content):
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content)
+        challenge = _parse_www_authenticate(response, 'www-authenticate')
+        self.challenge = challenge['hmacdigest']
+        print self.challenge
+        # TODO: self.challenge['domain']
+        self.challenge['reason'] = self.challenge.get('reason', 'unauthorized')
+        if self.challenge['reason'] not in ['unauthorized', 'integrity']:
+            self.challenge['reason'] = 'unauthorized'
+        self.challenge['salt'] = self.challenge.get('salt', '')
+        self.challenge['algorithm'] = self.challenge.get('algorithm', 'HMAC-SHA-1')
+        if self.challenge['algorithm'] not in ['HMAC-SHA-1', 'HMAC-MD5']:
+            raise UnimplementedDigestAuthOption( _("Unsupported value for algorithm: %s." % self.challenge['algorithm']))
+        self.challenge['pw-algorithm'] = self.challenge.get('pw-algorithm', 'SHA-1')
+        if self.challenge['pw-algorithm'] not in ['SHA-1', 'MD5']:
+            raise UnimplementedDigestAuthOption( _("Unsupported value for pw-algorithm: %s." % self.challenge['pw-algorithm']))
+        if self.challenge['algorithm'] == 'HMAC-MD5':
+            self.hashmod = md5
+        else:
+            self.hashmod = sha
+        if self.challenge['pw-algorithm'] == 'MD5':
+            self.pwhashmod = md5
+        else:
+            self.pwhashmod = sha
+        self.key = "".join([self.credentials[0], ":",
+                    self.pwhashmod.new("".join([self.credentials[1], self.challenge['salt']])).hexdigest(),
+                    ":", self.challenge['realm']
+                    ])
+        print response['www-authenticate']
+        print "".join([self.credentials[1], self.challenge['salt']])
+        print "key_str = %s" % self.key
+        self.key = self.pwhashmod.new(self.key).hexdigest()
+
+    def request(self, method, request_uri, headers, content):
+        """Modify the request headers"""
+        keys = headers.keys()
+        keylist = "".join(["%s " % k for k in keys])
+        headers_val = "".join([headers[k] for k in keys])
+        created = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
+        nonce = sha.new(str(random.getrandbits(512))+created).hexdigest() # This is where the 2.4 requirement comes from
+        request_digest = "%s:%s:%s:%s:%s" % (method, request_uri, nonce, created, headers_val)
+        print "key = %s" % self.key
+        print "msg = %s" % request_digest
+        request_digest  = hmac.new(self.key, request_digest, self.hashmod).hexdigest()
+        headers['Authorization'] = 'HMACDigest username="%s", realm="%s", nonce="%s", uri="%s", created="%s", response="%s", headers="%s"' % (
+                self.credentials[0], 
+                self.challenge['realm'],
+                nonce,
+                request_uri, 
+                created,
+                request_digest,
+                keylist,
+                )
+
+    def response(self, response, content):
+        challenge = _parse_www_authenticate(response, 'www-authenticate')['digest']
+        if 'integrity' == challenge.get('reason'):
+            return True
+        return False
+
+
 class WsseAuthentication(Authentication):
     """This is thinly tested and should not be relied upon.
     At this time there isn't any third party server to test against.
@@ -376,10 +442,11 @@ class WsseAuthentication(Authentication):
 AUTH_SCHEME_CLASSES = {
     "basic": BasicAuthentication,
     "wsse": WsseAuthentication,
-    "digest": DigestAuthentication
+    "digest": DigestAuthentication,
+    "hmacdigest": HmacDigestAuthentication
 }
 
-AUTH_SCHEME_ORDER = ["digest", "wsse", "basic"]
+AUTH_SCHEME_ORDER = ["hmacdigest", "digest", "wsse", "basic"]
 
 
 class Http:
