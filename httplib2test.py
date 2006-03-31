@@ -544,6 +544,7 @@ class HttpTest(unittest.TestCase):
         d = self.reflector(content)
         self.assertTrue(d.has_key('HTTP_USER_AGENT')) 
 
+# ------------------------------------------------------------------------
 
 class HttpPrivateTest(unittest.TestCase):
 
@@ -819,6 +820,30 @@ class HttpPrivateTest(unittest.TestCase):
         expected = "quR/EWLAV4xLf9Zqyw4pDmfV9OY="
         self.assertEqual(expected, digest)
 
+    def testEnd2End(self):
+        # one end to end header
+        response = {'content-type': 'application/atom+xml', 'te': 'deflate'}
+        end2end = httplib2._get_end2end_headers(response)
+        self.assertTrue('content-type' in end2end)
+        self.assertTrue('te' not in end2end)
+        self.assertTrue('connection' not in end2end)
+
+        # one end to end header that gets eliminated
+        response = {'connection': 'content-type', 'content-type': 'application/atom+xml', 'te': 'deflate'}
+        end2end = httplib2._get_end2end_headers(response)
+        self.assertTrue('content-type' not in end2end)
+        self.assertTrue('te' not in end2end)
+        self.assertTrue('connection' not in end2end)
+
+        # Degenerate case of no headers
+        response = {}
+        end2end = httplib2._get_end2end_headers(response)
+        self.assertEquals(0, len(end2end))
+
+        # Degenerate case of connection referrring to a header not passed in 
+        response = {'connection': 'content-type'}
+        end2end = httplib2._get_end2end_headers(response)
+        self.assertEquals(0, len(end2end))
 
 unittest.main()
 

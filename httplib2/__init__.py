@@ -86,6 +86,11 @@ DEFAULT_MAX_REDIRECTS = 5
 # Which headers are hop-by-hop headers by default
 HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade']
 
+def _get_end2end_headers(response):
+    hopbyhop = HOP_BY_HOP
+    hopbyhop.extend([x.strip() for x in response.get('connection', '').split(',')])
+    return [header for header in response.keys() if header not in hopbyhop]
+
 URI = re.compile(r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?")
 
 def parse_uri(uri):
@@ -390,11 +395,7 @@ class HmacDigestAuthentication(Authentication):
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers"""
-        if 'connection' in headers:
-            hopbyhop = HOP_BY_HOP + [k.strip().lower() for k in headers['connection'].split(',') if k.strip().lower() != 'close']
-        else:
-            hopbyhop = HOP_BY_HOP
-        keys = [k for k in headers.keys() if k.lower() not in hopbyhop]
+        keys = _get_end2end_headers(headers)
         keylist = "".join(["%s " % k for k in keys])
         headers_val = "".join([headers[k] for k in keys])
         created = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
@@ -663,10 +664,7 @@ class Http:
                 # and overwrite their values in info.
                 # unless they are hop-by-hop, or are listed in the connection header.
 
-                hopbyhop = HOP_BY_HOP
-                hopbyhop.append([x.strip() for x in response.get('connection', '').split(',')])
-                end2end = [header for header in response.keys() if header not in hopbyhop]
-                for key in end2end:
+                for key in _get_end2end_headers(response):
                     info[key] = response[key]
                 merged_response = Response(info)
                 if hasattr(response, "_stale_digest"):
