@@ -32,6 +32,11 @@ import sha
 import hmac
 from gettext import gettext as _
 
+__all__ = ['Http', 'Response', 'HttpLib2Error',
+  'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
+  'UnimplementedDigestAuthOptionError', 'UnimplementedHmacDigestAuthOptionError']
+
+
 # The httplib debug level, set to a non-zero value to get debug output
 debuglevel = 0
 
@@ -157,17 +162,17 @@ def _entry_disposition(response_headers, request_headers):
 
     Not that this algorithm is simpler than you might think 
     because we are operating as a private (non-shared) cache.
-    This let's us ignore 's-maxage'. We can also ignore
+    This lets us ignore 's-maxage'. We can also ignore
     'proxy-invalidate' since we aren't a proxy.
     We will never return a stale document as 
     fresh as a design decision, and thus the non-implementation 
-    of 'max-stale'. This also let's us safely ignore 'must-revalidate' 
+    of 'max-stale'. This also lets us safely ignore 'must-revalidate' 
     since we operate as if every server has sent 'must-revalidate'.
     Since we are private we get to ignore both 'public' and
     'private' parameters. We also ignore 'no-transform' since
     we don't do any transformations.    
     The 'no-store' parameter is handled at a higher level.
-    So the only Cache-Control parameters he look at are:
+    So the only Cache-Control parameters we look at are:
 
     no-cache
     only-if-cached
@@ -458,9 +463,9 @@ AUTH_SCHEME_ORDER = ["hmacdigest", "digest", "wsse", "basic"]
 
 
 class Http:
-    """An http client that handles all 
+    """An HTTP client that handles all 
     methods, caching, ETags, compression,
-    https, Basic, Digest, etc.
+    HTTPS, Basic, Digest, WSSE, etc.
     """
     def __init__(self, cache=None):
         # Map domain name to an httplib connection
@@ -488,9 +493,13 @@ class Http:
                     yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content) 
 
     def add_credentials(self, name, password):
+        """Add a name and password that will be used
+        any time a request requires authentication."""
         self.credentials.append((name, password))
 
     def clear_credentials(self):
+        """Remove all the names and passwords
+        that are used for authentication"""
         self.credentials = []
         self.authorizations = []
 
