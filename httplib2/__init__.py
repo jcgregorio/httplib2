@@ -645,9 +645,15 @@ class Http:
                 entry_disposition = _entry_disposition(info, headers) 
                 
                 if entry_disposition == "FRESH":
+                    is_cached = os.path.exists(cacheFullPath)
+                    if not is_cached:
+                        info['status'] = '504'
+                        content = ""
                     response = Response(info)
-                    response.fromcache = True
+                    if is_cached:
+                        response.fromcache = True
                     return (response, content)
+
                 elif entry_disposition == "STALE":
                     if info.has_key('etag'):
                         headers['if-none-match'] = info['etag']
