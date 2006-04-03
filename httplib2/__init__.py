@@ -92,7 +92,7 @@ DEFAULT_MAX_REDIRECTS = 5
 HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade']
 
 def _get_end2end_headers(response):
-    hopbyhop = HOP_BY_HOP
+    hopbyhop = list(HOP_BY_HOP)
     hopbyhop.extend([x.strip() for x in response.get('connection', '').split(',')])
     return [header for header in response.keys() if header not in hopbyhop]
 
