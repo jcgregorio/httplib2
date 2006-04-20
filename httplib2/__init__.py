@@ -603,12 +603,12 @@ class Http:
         request_uri = query and "?".join([path, query]) or path
         defrag_uri = scheme + "://" + authority + request_uri
 
-        if not self.connections.has_key(authority):
+        if not self.connections.has_key(scheme+":"+authority):
             connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
-            conn = self.connections[authority] = connection_type(authority)
+            conn = self.connections[scheme+":"+authority] = connection_type(authority)
             conn.set_debuglevel(debuglevel)
         else:
-            conn = self.connections[authority]
+            conn = self.connections[scheme+":"+authority]
 
         if method in ["GET", "HEAD"] and 'range' not in headers:
             headers['accept-encoding'] = 'compress, gzip'
