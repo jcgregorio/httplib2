@@ -458,12 +458,11 @@ class GoogleLoginAuthentication(Authentication):
         Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
 
         auth = dict(Email=credentials[0], Passwd=credentials[1], service='cl', source=headers['user-agent'])
-        resp, content = h.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
-        self.Auth = ""
-        if resp < 300:
-            lines = content.split('\n')
-            d = dict([tuple(line.split("=")) for line in lines if line])
-            self.Auth = d['Auth']
+        resp, content = self.http.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        lines = content.split('\n')
+        d = dict([tuple(line.split("=")) for line in lines if line])
+        self.Auth = d['Auth']
+        print self.Auth
 
 
     def request(self, method, request_uri, headers, content):
