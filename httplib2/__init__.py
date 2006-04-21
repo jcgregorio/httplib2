@@ -260,11 +260,12 @@ def _wsse_username_token(cnonce, iso_now, password):
 # how close to the 'top' it is.
 
 class Authentication:
-    def __init__(self, credentials, host, request_uri, headers, response, content):
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
         (scheme, authority, path, query, fragment) = parse_uri(request_uri)
         self.path = path
         self.host = host
         self.credentials = credentials
+        self.http = http
 
     def depth(self, request_uri):
         (scheme, authority, path, query, fragment) = parse_uri(request_uri)
@@ -293,8 +294,8 @@ class Authentication:
 
 
 class BasicAuthentication(Authentication):
-    def __init__(self, credentials, host, request_uri, headers, response, content):
-        Authentication.__init__(self, credentials, host, request_uri, headers, response, content)
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
@@ -305,8 +306,8 @@ class BasicAuthentication(Authentication):
 class DigestAuthentication(Authentication):
     """Only do qop='auth' and MD5, since that 
     is all Apache currently implements"""
-    def __init__(self, credentials, host, request_uri, headers, response, content):
-        Authentication.__init__(self, credentials, host, request_uri, headers, response, content)
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
         challenge = _parse_www_authenticate(response, 'www-authenticate')
         self.challenge = challenge['digest']
         qop = self.challenge.get('qop')
@@ -363,8 +364,8 @@ class HmacDigestAuthentication(Authentication):
     """Adapted from Robert Sayre's code and DigestAuthentication above."""
     __author__ = "Thomas Broyer (t.broyer@ltgt.net)"
 
-    def __init__(self, credentials, host, request_uri, headers, response, content):
-        Authentication.__init__(self, credentials, host, request_uri, headers, response, content)
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
         challenge = _parse_www_authenticate(response, 'www-authenticate')
         self.challenge = challenge['hmacdigest']
         print self.challenge
@@ -435,8 +436,8 @@ class WsseAuthentication(Authentication):
     TypePad has implemented it wrong, by never issuing a 401
     challenge but instead requiring your client to telepathically know that
     their endpoint is expecting WSSE profile="UsernameToken"."""
-    def __init__(self, credentials, host, request_uri, headers, response, content):
-        Authentication.__init__(self, credentials, host, request_uri, headers, response, content)
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
@@ -451,15 +452,35 @@ class WsseAuthentication(Authentication):
                 cnonce,
                 iso_now)
 
+class GoogleLoginAuthentication(Authentication):
+    def __init__(self, credentials, host, request_uri, headers, response, content, http):
+        from urllib import urlencode
+        Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
+
+        auth = dict(Email=credentials[0], Passwd=credentials[1], service='cl', source=headers['user-agent'])
+        resp, content = h.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        self.Auth = ""
+        if resp < 300:
+            lines = content.split('\n')
+            d = dict([tuple(line.split("=")) for line in lines if line])
+            self.Auth = d['Auth']
+
+
+    def request(self, method, request_uri, headers, content):
+        """Modify the request headers to add the appropriate
+        Authorization header."""
+        headers['authorization'] = 'GoogleLogin Auth=' + self.Auth 
+
 
 AUTH_SCHEME_CLASSES = {
     "basic": BasicAuthentication,
     "wsse": WsseAuthentication,
     "digest": DigestAuthentication,
-    "hmacdigest": HmacDigestAuthentication
+    "hmacdigest": HmacDigestAuthentication,
+    "googlelogin": GoogleLoginAuthentication
 }
 
-AUTH_SCHEME_ORDER = ["hmacdigest", "digest", "wsse", "basic"]
+AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 
 
 class Http:
@@ -490,7 +511,7 @@ class Http:
         for cred in self.credentials:
             for scheme in AUTH_SCHEME_ORDER:
                 if challenges.has_key(scheme):
-                    yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content) 
+                    yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content, self) 
 
     def add_credentials(self, name, password):
         """Add a name and password that will be used

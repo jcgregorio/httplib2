@@ -799,7 +799,7 @@ class HttpPrivateTest(unittest.TestCase):
         }
         content = ""
         
-        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content)
+        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content, None)
         d.request("GET", request_uri, headers, content, cnonce="33033375ec278a46") 
         our_request = "Authorization: %s" % headers['Authorization']
         working_request = 'Authorization: Digest username="joe", realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", uri="/projects/httplib2/test/digest/", algorithm=MD5, response="97ed129401f7cdc60e5db58a80f3ea8b", qop=auth, nc=00000001, cnonce="33033375ec278a46"'
@@ -815,7 +815,7 @@ class HttpPrivateTest(unittest.TestCase):
         response['www-authenticate'] = 'Digest realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", algorithm=MD5, qop="auth", stale=true'
         response.status = 401
         content = ""
-        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content)
+        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content, None)
         # Returns true to force a retry
         self.assertTrue( d.response(response, content) )
 
@@ -828,7 +828,7 @@ class HttpPrivateTest(unittest.TestCase):
         response['www-authenticate'] = 'Digest realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", algorithm=MD5, qop="auth", stale=true'
         response['authentication-info'] = 'nextnonce="fred"'
         content = ""
-        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content)
+        d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content, None)
         # Returns true to force a retry
         self.assertFalse( d.response(response, content) )
         self.assertEqual('fred', d.challenge['nonce'])
