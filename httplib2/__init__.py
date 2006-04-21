@@ -462,8 +462,6 @@ class GoogleLoginAuthentication(Authentication):
         lines = content.split('\n')
         d = dict([tuple(line.split("=")) for line in lines if line])
         self.Auth = d['Auth']
-        print self.Auth
-
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
