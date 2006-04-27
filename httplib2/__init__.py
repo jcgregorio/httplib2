@@ -460,8 +460,11 @@ class GoogleLoginAuthentication(Authentication):
         auth = dict(Email=credentials[0], Passwd=credentials[1], service='cl', source=headers['user-agent'])
         resp, content = self.http.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
         lines = content.split('\n')
-        d = dict([tuple(line.split("=")) for line in lines if line])
-        self.Auth = d['Auth']
+        d = dict([tuple(line.split("=", 1)) for line in lines if line])
+        if resp.status == 403:
+            self.Auth = ""
+        else:
+            self.Auth = d['Auth']
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
@@ -499,6 +502,8 @@ class Http:
 
         # authorization objects
         self.authorizations = []
+
+        self.follow_all_redirects = False
 
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
@@ -568,14 +573,14 @@ class Http:
                     authorization.response(response, body)
                     break
 
-        if method in ["GET", "HEAD"] or response.status == 303:
+        if (self.follow_all_redirects or method in ["GET", "HEAD"]) or response.status == 303:
             if response.status in [300, 301, 302, 303, 307]:
                 # Pick out the location header and basically start from the beginning
                 # remembering first to strip the ETag header and decrement our 'depth'
                 if redirections:
                     if not response.has_key('location') and response.status != 300:
                         raise RedirectMissingLocation( _("Redirected but the response is missing a Location: header."))
-                    if response.status == 301:
+                    if response.status == 301 and method in ["GET", "HEAD"]:
                         response['-x-permanent-redirect-url'] = response['location']
                         _updateCache(headers, response, content, cacheFullPath)
                     if headers.has_key('if-none-match'):
@@ -589,7 +594,7 @@ class Http:
                         if authority == None:
                             location = urlparse.urljoin(absolute_uri, location)
                         redirect_method = ((response.status == 303) and (method not in ["GET", "HEAD"])) and "GET" or method
-                        (response, content) = self.request(location, redirect_method, headers = headers, redirections = redirections - 1)
+                        (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response._previous = old_response
                 else:
                     raise RedirectLimit( _("Redirected more times than rediection_limit allows."))
