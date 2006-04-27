@@ -106,8 +106,9 @@ def parse_uri(uri):
     groups = URI.match(uri).groups()
     return (groups[1], groups[3], groups[4], groups[6], groups[8])
 
+NORMALIZE_SPACE = re.compile(r'(?:\r\n)?[ \t]+')
 def _normalize_headers(headers):
-    return dict([ (key.lower(), value)  for (key, value) in headers.iteritems()])
+    return dict([ (key.lower(), NORMALIZE_SPACE.sub(value, ' ').strip())  for (key, value) in headers.iteritems()])
 
 def _parse_cache_control(headers):
     retval = {}
@@ -118,15 +119,27 @@ def _parse_cache_control(headers):
         retval = dict(parts_with_args + parts_wo_args)
     return retval 
 
-WWW_AUTH = re.compile(r"^(?:,?\s*([a-zA-Z0-9_-]+)\s*=\s*\"((?:[^\\\"]|\\.)*?)\")(.*)$")
-# Yes, some parameters don't have quotes. Why again am I spending so much time doing HTTP?
-WWW_AUTH2 = re.compile(r"^(?:,?\s*([a-zA-Z0-9_-]+)\s*=\s*(\w+))(.*)$")
+# Whether to use a strict mode to parse WWW-Authenticate headers
+# Might lead to bad results in case of ill-formed header value,
+# so disabled by default, falling back to relaxed parsing.
+# Set to true to turn on, usefull for testing servers.
+USE_WWW_AUTH_STRICT_PARSING = 0
+
+# In regex below:
+#    [^\0-\x1f\x7f-\xff()<>@,;:\\\"/[\]?={} \t]+             matches a "token" as defined by HTTP
+#    "(?:[^\0-\x08\x0A-\x1f\x7f-\xff\\\"]|\\[\0-\x7f])*?"    matches a "quoted-string" as defined by HTTP, when LWS have already been replaced by a single space
+# Actually, as an auth-param value can be either a token or a quoted-string, they are combined in a single pattern which matches both:
+#    \"?((?<=\")(?:[^\0-\x1f\x7f-\xff\\\"]|\\[\0-\x7f])*?(?=\")|(?<!\")[^\0-\x08\x0A-\x1f\x7f-\xff()<>@,;:\\\"/[\]?={} \t]+(?!\"))\"?
+WWW_AUTH_STRICT = re.compile(r"^(?:\s*(?:,\s*)?([^\0-\x1f\x7f-\xff()<>@,;:\\\"/[\]?={} \t]+)\s*=\s*\"?((?<=\")(?:[^\0-\x08\x0A-\x1f\x7f-\xff\\\"]|\\[\0-\x7f])*?(?=\")|(?<!\")[^\0-\x1f\x7f-\xff()<>@,;:\\\"/[\]?={} \t]+(?!\"))\"?)(.*)$")
+WWW_AUTH_RELAXED = re.compile(r"^(?:\s*(?:,\s*)?([^ \t\r\n=]+)\s*=\s*\"?((?<=\")(?:[^\\\"]|\\.)*?(?=\")|(?<!\")[^ \t\r\n,]+(?!\"))\"?)(.*)$")
+UNQUOTE_PAIRS = re.compile(r'\\(.)')
 def _parse_www_authenticate(headers, headername='www-authenticate'):
     """Returns a dictionary of dictionaries, one dict
     per auth_scheme."""
     retval = {}
     if headers.has_key(headername):
         authenticate = headers[headername].strip()
+        www_auth = USE_WWW_AUTH_STRICT_PARSING and WWW_AUTH_STRICT or WWW_AUTH_RELAXED
         while authenticate:
             # Break off the scheme at the beginning of the line
             if headername == 'authentication-info':
@@ -135,18 +148,13 @@ def _parse_www_authenticate(headers, headername='www-authenticate'):
                 (auth_scheme, the_rest) = authenticate.split(" ", 1)
             # Now loop over all the key value pairs that come after the scheme, 
             # being careful not to roll into the next scheme
-            match = WWW_AUTH.search(the_rest)
-            match2 = WWW_AUTH2.search(the_rest)
+            match = www_auth.search(the_rest)
             auth_params = {}
-            while match or match2:
-                if match2 and len(match2.groups()) == 3:
-                    (key, value, the_rest) = match2.groups()
-                    auth_params[key.lower()] = value
-                elif match and len(match.groups()) == 3:
+            while match:
+                if match and len(match.groups()) == 3:
                     (key, value, the_rest) = match.groups()
-                    auth_params[key.lower()] = value
-                match = WWW_AUTH.search(the_rest)
-                match2 = WWW_AUTH2.search(the_rest)
+                    auth_params[key.lower()] = UNQUOTE_PAIRS.sub(r'\1', value) # '\\'.join([x.replace('\\', '') for x in value.split('\\\\')])
+                match = www_auth.search(the_rest)
             retval[auth_scheme.lower()] = auth_params
             authenticate = the_rest.strip()
     return retval

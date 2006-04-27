@@ -701,6 +701,27 @@ class HttpPrivateTest(unittest.TestCase):
         res = httplib2._parse_www_authenticate({})
         self.assertEqual(len(res.keys()), 0) 
 
+    def testParseWWWAuthenticate(self):
+        # different uses of spaces around commas
+        res = httplib2._parse_www_authenticate({ 'www-authenticate': 'Test realm="test realm" , foo=foo ,bar="bar", baz=baz,qux=qux'})
+        self.assertEqual(len(res.keys()), 1)
+        self.assertEqual(len(res['test'].keys()), 5)
+        
+        # tokens with non-alphanum
+        res = httplib2._parse_www_authenticate({ 'www-authenticate': 'T*!%#st realm=to*!%#en, to*!%#en="quoted string"'})
+        self.assertEqual(len(res.keys()), 1)
+        self.assertEqual(len(res['t*!%#st'].keys()), 2)
+        
+        # quoted string with quoted pairs
+        res = httplib2._parse_www_authenticate({ 'www-authenticate': 'Test realm="a \\"test\\" realm"'})
+        self.assertEqual(len(res.keys()), 1)
+        self.assertEqual(res['test']['realm'], 'a "test" realm')
+
+    def testParseWWWAuthenticateStrict(self):
+        httplib2.USE_WWW_AUTH_STRICT_PARSING = 1;
+        self.testParseWWWAuthenticate();
+        httplib2.USE_WWW_AUTH_STRICT_PARSING = 0;
+
     def testParseWWWAuthenticateBasic(self):
         res = httplib2._parse_www_authenticate({ 'www-authenticate': 'Basic realm="me"'})
         basic = res['basic']
