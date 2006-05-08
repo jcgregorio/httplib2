@@ -80,7 +80,7 @@ and Basic authentication:</p>
 
 <pre><code>import httplib2
 h = httplib2.Http(".cache")
-h.add_credentals('name', 'password')
+h.add_credentials('name', 'password')
 resp, content = h.request("https://example.org/chap/2", 
     "PUT", body="This is text", 
     headers={'content-type':'text/plain'} )
