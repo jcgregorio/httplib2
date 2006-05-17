@@ -694,15 +694,15 @@ class Http:
                         response.fromcache = True
                     return (response, content)
 
-                elif entry_disposition == "STALE":
+                if entry_disposition == "STALE":
                     if info.has_key('etag'):
                         headers['if-none-match'] = info['etag']
                     if info.has_key('last-modified'):
                         headers['if-modified-since'] = info['last-modified']
                 elif entry_disposition == "TRANSPARENT":
                     pass
-                if entry_disposition != "FRESH":
-                    (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cacheFullPath)
+
+                (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cacheFullPath)
 
             if response.status == 304 and method == "GET":
                 # Rewrite the cache entry with the new end-to-end headers
