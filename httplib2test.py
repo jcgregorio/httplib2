@@ -193,7 +193,7 @@ class HttpTest(unittest.TestCase):
             self.fail("Threw wrong kind of exception ")
 
     def testGet302ViaHttps(self):
-        # goole always redirects to http://google.com
+        # Google always redirects to http://google.com
         (response, content) = http.request("https://google.com", "GET")
         self.assertEqual(200, response.status)
         self.assertEqual(302, response._previous.status)
@@ -460,7 +460,7 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
 
     def testBasicAuthTwoDifferentCredentials(self):
-        # Test Basic Authentication with multple sets of credentials
+        # Test Basic Authentication with multiple sets of credentials
         uri = urlparse.urljoin(base, "basic2/file.txt")
         (response, content) = http.request(uri, "GET")
         self.assertEqual(response.status, 401)
@@ -488,7 +488,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = http.request(uri, "GET")
         self.assertEqual(response.status, 401)
 
-        # Now add in creditials one at a time and test.
+        # Now add in credentials one at a time and test.
         http.add_credentials('joe', 'password')
 
         uri = urlparse.urljoin(base, "basic-nested/")

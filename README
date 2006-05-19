@@ -70,7 +70,7 @@ To PUT some content to a server that uses SSL and Basic authentication:
 
   import httplib2
   h = httplib2.Http(".cache")
-  h.add_credentals('name', 'password')
+  h.add_credentials('name', 'password')
   (resp, content) = h.request("https://example.org/chapter/2", 
                             "PUT", body="This is text", 
                             headers={'content-type':'text/plain'} )
