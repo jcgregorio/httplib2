@@ -233,23 +233,21 @@ def _decompressContent(response, new_content):
         raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'))
     return content
 
-def _updateCache(request_headers, response_headers, content, cacheFullPath):
-    if cacheFullPath:
+def _updateCache(request_headers, response_headers, content, cache, cachekey):
+    if cachekey:
         cc = _parse_cache_control(request_headers)
         cc_response = _parse_cache_control(response_headers)
         if cc.has_key('no-store') or cc_response.has_key('no-store'):
-            if os.path.exists(cacheFullPath):
-                os.remove(cacheFullPath)
+            cache.delete(cachekey)
         else:
-            f = open(cacheFullPath, "w")
+            f = StringIO.StringIO("")
             info = rfc822.Message(StringIO.StringIO(""))
             for key, value in response_headers.iteritems():
                 info[key] = value
-        
             f.write(str(info))
-            f.write("\n")
+            f.write("\r\n\r\n")
             f.write(content)
-            f.close()
+            cache.set(cachekey, f.getvalue())
 
 def _cnonce():
     dig = md5.new("%s:%s" % (time.ctime(), ["0123456789"[random.randrange(0, 9)] for i in range(20)])).hexdigest()
@@ -491,6 +489,38 @@ AUTH_SCHEME_CLASSES = {
 AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 
 
+class FileCache:
+    """Uses a local directory as a store for cached files.
+    Not really safe to use if multiple threads or processes are going to 
+    be running on the same cache.
+    """
+    def __init__(self, cache):
+        self.cache = cache
+        if not os.path.exists(cache): 
+            os.makedirs(self.cache)
+
+    def get(self, key):
+        retval = None
+        cacheFullPath = os.path.join(self.cache, key)
+        try:
+            f = file(cacheFullPath, "r")
+            retval = f.read()
+            f.close()
+        except:
+            pass
+        return retval
+
+    def set(self, key, value):
+        cacheFullPath = os.path.join(self.cache, key)
+        f = file(cacheFullPath, "w")
+        f.write(value)
+        f.close()
+
+    def delete(self, key):
+        cacheFullPath = os.path.join(self.cache, key)
+        if os.path.exists(cacheFullPath):
+            os.remove(cacheFullPath)
+
 class Http:
     """An HTTP client that handles all 
     methods, caching, ETags, compression,
@@ -501,9 +531,10 @@ class Http:
         self.connections = {}
         # The location of the cache, for now a directory
         # where cached responses are held.
-        self.cache = cache
-        if self.cache and not os.path.isdir(cache): 
-            os.makedirs(self.cache)
+        if cache and isinstance(cache, str):
+            self.cache = FileCache(cache)
+        else:
+            self.cache = cache
 
         # tuples of name, password
         self.credentials = []
@@ -555,7 +586,7 @@ class Http:
         return (response, content)
 
 
-    def _request(self, conn, host, absolute_uri, request_uri, method, body, headers, redirections, cacheFullPath):
+    def _request(self, conn, host, absolute_uri, request_uri, method, body, headers, redirections, cachekey):
         """Do the actual request using the connection object
         and also follow one level of redirects if necessary"""
 
@@ -590,7 +621,7 @@ class Http:
                         raise RedirectMissingLocation( _("Redirected but the response is missing a Location: header."))
                     if response.status == 301 and method in ["GET", "HEAD"]:
                         response['-x-permanent-redirect-url'] = response['location']
-                        _updateCache(headers, response, content, cacheFullPath)
+                        _updateCache(headers, response, content, self.cache, cachekey)
                     if headers.has_key('if-none-match'):
                         del headers['if-none-match']
                     if headers.has_key('if-modified-since'):
@@ -608,7 +639,7 @@ class Http:
                     raise RedirectLimit( _("Redirected more times than rediection_limit allows."))
             elif response.status in [200, 203] and method == "GET":
                 # Don't cache 206's since we aren't going to handle byte range requests
-                _updateCache(headers, response, content, cacheFullPath)
+                _updateCache(headers, response, content, self.cache, cachekey)
 
         return (response, content)
 
@@ -645,27 +676,28 @@ class Http:
             headers['accept-encoding'] = 'compress, gzip'
 
         info = rfc822.Message(StringIO.StringIO(""))
+        cached_value = None
         if self.cache:
-            cacheFullPath = os.path.join(self.cache, md5.new(defrag_uri).hexdigest())
-            if os.path.exists(cacheFullPath):
-                try:
-                    f = file(cacheFullPath, "r")
-                    info = rfc822.Message(f)
-                    f.seek(0)
-                    content = f.read().split('\n\n', 1)[1]
-                    f.close()
-                except:
-                    os.remove(cacheFullPath)
+            cachekey = md5.new(defrag_uri).hexdigest()
+            cached_value = self.cache.get(cachekey)
+            if cached_value:
+                #try:
+                f = StringIO.StringIO(cached_value)
+                info = rfc822.Message(f)
+                content = cached_value.split('\r\n\r\n', 1)[1]
+                #except:
+                #    self.cache.delete(cachekey)
+                #    cachekey = None
         else:
-            cacheFullPath = None
+            cachekey = None
                     
         if method in ["PUT"] and self.cache and info.has_key('etag'):
             # http://www.w3.org/1999/04/Editing/ 
             headers['if-match'] = info['etag']
 
-        if method not in ["GET", "HEAD"] and self.cache and os.path.exists(cacheFullPath):
+        if method not in ["GET", "HEAD"] and self.cache and cachekey:
             # RFC 2616 Section 13.10
-            os.remove(cacheFullPath)
+            self.cache.delete(cachekey)
 
         if method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
             if info.has_key('-x-permanent-redirect-url'):
@@ -685,12 +717,11 @@ class Http:
                 entry_disposition = _entry_disposition(info, headers) 
                 
                 if entry_disposition == "FRESH":
-                    is_cached = os.path.exists(cacheFullPath)
-                    if not is_cached:
+                    if not cached_value:
                         info['status'] = '504'
                         content = ""
                     response = Response(info)
-                    if is_cached:
+                    if cached_value:
                         response.fromcache = True
                     return (response, content)
 
@@ -702,7 +733,7 @@ class Http:
                 elif entry_disposition == "TRANSPARENT":
                     pass
 
-                (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cacheFullPath)
+                (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
 
             if response.status == 304 and method == "GET":
                 # Rewrite the cache entry with the new end-to-end headers
@@ -715,7 +746,7 @@ class Http:
                 merged_response = Response(info)
                 if hasattr(response, "_stale_digest"):
                     merged_response._stale_digest = response._stale_digest
-                _updateCache(headers, merged_response, content, cacheFullPath)
+                _updateCache(headers, merged_response, content, self.cache, cachekey)
                 response = merged_response
                 response.status = 200
                 response.fromcache = True 
@@ -723,11 +754,10 @@ class Http:
             elif response.status == 200:
                 content = new_content
             else:
-                if os.path.exists(cacheFullPath):
-                    os.remove(cacheFullPath)
+                self.cache.delete(cachekey)
                 content = new_content 
         else: 
-            (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cacheFullPath)
+            (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
         return (response, content)
 
  
@@ -744,8 +774,8 @@ class Response(dict):
     "Status code returned by server. "
     status = 200
 
-    reason = "Ok"
     """Reason phrase returned by server."""
+    reason = "Ok"
 
     _previous = None
 
