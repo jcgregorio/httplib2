@@ -41,8 +41,10 @@ class ParserTest(unittest.TestCase):
 
 class HttpTest(unittest.TestCase):
     def setUp(self):
-        [os.remove(os.path.join(".cache", file)) for file in os.listdir(".cache")]
-        self.http = httplib2.Http(".cache")
+        cacheDirName = ".cache"
+        if os.path.exists(cacheDirName): 
+            [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
+        self.http = httplib2.Http(cacheDirName)
         self.http.clear_credentials()
 
     def testGetIsDefaultMethod(self):
