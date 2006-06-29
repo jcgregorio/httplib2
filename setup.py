@@ -1,5 +1,5 @@
 from distutils.core import setup
-VERSION = '0.1.1'
+VERSION = '0.2.0'
 setup(name='httplib2',
         version=VERSION, 
         author='Joe Gregorio',
@@ -29,7 +29,8 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 
 **Caching**
   The module can optionally operate with a private cache that understands the Cache-Control: 
-  header and uses both the ETag and Last-Modified cache validators. 
+  header and uses both the ETag and Last-Modified cache validators. Both file system
+  and memcached based caches are supported.
 
 
 **All Methods**
@@ -41,7 +42,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 
 
 **Compression**
-  Handles both 'compress' and 'gzip' types of compression.
+  Handles both 'deflate' and 'gzip' types of compression.
 
 
 **Lost update support**
