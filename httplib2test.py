@@ -568,8 +568,15 @@ try:
     class HttpTestMemCached(HttpTest):
         def setUp(self):
             self.cache = memcache.Client(['127.0.0.1:11211'], debug=0)
+            #self.cache = memcache.Client(['10.0.0.4:11211'], debug=1)
             self.http = httplib2.Http(self.cache)
             self.cache.flush_all()
+            # Not exactly sure why the sleep is needed here, but
+            # if not present then some unit tests that rely on caching
+            # fail. Memcached seems to lose some sets immediately
+            # after a flush_all if the set is to a value that
+            # was previously cached. (Maybe the flush is handled async?)
+            time.sleep(1)
             self.http.clear_credentials()
 except:
     pass
