@@ -10,7 +10,9 @@ Requires Python 2.3 or later
 
 __author__ = "Joe Gregorio (joe@bitworking.org)"
 __copyright__ = "Copyright 2006, Joe Gregorio"
-__contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)"]
+__contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
+    "James Antill",
+    "Xavier Verges Farrero"]
 __license__ = "MIT"
 __version__ = "$Rev$"
 
@@ -634,7 +636,7 @@ class Http:
                             location = urlparse.urljoin(absolute_uri, location)
                         redirect_method = ((response.status == 303) and (method not in ["GET", "HEAD"])) and "GET" or method
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
-                        response._previous = old_response
+                        response.previous = old_response
                 else:
                     raise RedirectLimit( _("Redirected more times than rediection_limit allows."))
             elif response.status in [200, 203] and method == "GET":
@@ -703,8 +705,8 @@ class Http:
             if info.has_key('-x-permanent-redirect-url'):
                 # Should cached permanent redirects be counted in our redirection count? For now, yes.
                 (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
-                response._previous = Response(info)
-                response._previous.fromcache = True
+                response.previous = Response(info)
+                response.previous.fromcache = True
             else:
                 # Determine our course of action:
                 #   Is the cached entry fresh or stale?
@@ -777,20 +779,20 @@ class Response(dict):
     """Reason phrase returned by server."""
     reason = "Ok"
 
-    _previous = None
+    previous = None
 
     def __init__(self, info):
         # info is either an rfc822.Message or 
         # an httplib.HTTPResponse object.
         if isinstance(info, httplib.HTTPResponse):
-            for key, value in info.getheaders(): # This is where the 2.4 requirement comes from
+            for key, value in info.getheaders(): 
                 self[key] = value 
             self.status = info.status
             self['status'] = str(self.status)
             self.reason = info.reason
             self.version = info.version
         elif isinstance(info, rfc822.Message):
-            for key, value in info.items(): # This is where the 2.4 requirement comes from
+            for key, value in info.items(): 
                 self[key] = value 
             self.status = int(self['status'])
 

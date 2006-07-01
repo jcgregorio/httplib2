@@ -31,7 +31,7 @@ All Methods
 Redirects
     Automatically follows 3XX redirects on GETs.
 Compression
-    Handles both 'compress' and 'gzip' types of compression.
+    Handles both 'deflate' and 'gzip' types of compression.
 Lost update support
     Automatically adds back ETags into PUT requests to resources i
     we have already cached. This implements Section 3.2 of 

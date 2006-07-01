@@ -1,5 +1,12 @@
+0.2.0
+   Added support for Google Auth.
 
+   Added support for a pluggable caching system. Now supports
+   the file system and memcached.
 
+   Added experimental support for HMACDigest.  
+
+   Added httplib2.debuglevel which turns on debugging. 
 
 0.1.1
 

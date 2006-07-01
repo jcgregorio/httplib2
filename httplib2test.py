@@ -66,7 +66,7 @@ class HttpTest(unittest.TestCase):
         uri = urlparse.urljoin(base, "304/test_etag.txt")
         (response, content) = http.request(uri, "GET")
         self.assertEqual(response.status, 200)
-        self.assertEqual(response._previous, None)
+        self.assertEqual(response.previous, None)
 
     def testGetOnlyIfCachedCacheMiss(self):
         # Test that can do a GET with no cache with 'only-if-cached'
@@ -107,15 +107,15 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 300)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 300)
+        self.assertEqual(response.previous.fromcache, False)
 
         # Confirm that the intermediate 300 is not cached
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 300)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 300)
+        self.assertEqual(response.previous.fromcache, False)
 
     def testGet300WithoutLocation(self):
         # Not giving a Location: header in a 300 response is acceptable
@@ -124,7 +124,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 300)
         self.assertTrue(response['content-type'].startswith("text/html"))
-        self.assertEqual(response._previous, None)
+        self.assertEqual(response.previous, None)
 
     def testGet301(self):
         # Test that we automatically follow 301 redirects
@@ -133,14 +133,14 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 301)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 301)
+        self.assertEqual(response.previous.fromcache, False)
 
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 301)
-        self.assertEqual(response._previous.fromcache, True)
+        self.assertEqual(response.previous.status, 301)
+        self.assertEqual(response.previous.fromcache, True)
 
     def testGet302(self):
         # Test that we automatically follow 302 redirects
@@ -149,16 +149,16 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 302)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 302)
+        self.assertEqual(response.previous.fromcache, False)
 
         uri = urlparse.urljoin(base, "302/onestep.asis")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 302)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 302)
+        self.assertEqual(response.previous.fromcache, False)
 
         uri = urlparse.urljoin(base, "302/twostep.asis")
 
@@ -166,8 +166,8 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 302)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 302)
+        self.assertEqual(response.previous.fromcache, False)
 
     def testGet302RedirectionLimit(self):
         # Test that we can set a lower redirection limit
@@ -198,13 +198,13 @@ class HttpTest(unittest.TestCase):
         # Google always redirects to http://google.com
         (response, content) = self.http.request("https://google.com", "GET")
         self.assertEqual(200, response.status)
-        self.assertEqual(302, response._previous.status)
+        self.assertEqual(302, response.previous.status)
 
     def testGetViaHttps(self):
         # Test that we can handle HTTPS
         (response, content) = self.http.request("https://google.com/adsense/", "GET")
         self.assertEqual(200, response.status)
-        self.assertEqual(None, response._previous)
+        self.assertEqual(None, response.previous)
 
     def testGetViaHttpsSpecViolationOnLocation(self):
         # Test that we follow redirects through HTTPS
@@ -213,7 +213,7 @@ class HttpTest(unittest.TestCase):
         # absolute one.
         (response, content) = self.http.request("https://google.com/adsense", "GET")
         self.assertEqual(200, response.status)
-        self.assertNotEqual(None, response._previous)
+        self.assertNotEqual(None, response.previous)
 
     def testGet303(self):
         # Do a follow-up GET on a Location: header
@@ -222,7 +222,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "POST", " ")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 303)
+        self.assertEqual(response.previous.status, 303)
 
     def test303ForDifferentMethods(self):
         # Test that all methods can be used
@@ -286,15 +286,15 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 307)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 307)
+        self.assertEqual(response.previous.fromcache, False)
 
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
         self.assertEqual(content, "This is the final destination.\n")
-        self.assertEqual(response._previous.status, 307)
-        self.assertEqual(response._previous.fromcache, False)
+        self.assertEqual(response.previous.status, 307)
+        self.assertEqual(response.previous.fromcache, False)
 
     def testGet410(self):
         # Test that we pass 410's through
