@@ -33,9 +33,9 @@ Redirects
 Compression
     Handles both 'deflate' and 'gzip' types of compression.
 Lost update support
-    Automatically adds back ETags into PUT requests to resources i
+    Automatically adds back ETags into PUT requests to resources 
     we have already cached. This implements Section 3.2 of 
-    Detecting the Lost Update Problem Using Unreserved Checkout
+    Detecting the Lost Update Problem Using Unreserved Checkout.
 Unit Tested
     A large and growing set of unit tests. 
 

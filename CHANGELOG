@@ -1,12 +1,21 @@
 0.2.0
    Added support for Google Auth.
 
-   Added support for a pluggable caching system. Now supports
-   the file system and memcached.
-
    Added experimental support for HMACDigest.  
 
+   Added support for a pluggable caching system. Now supports
+   the old system of using the file system and now memcached.
+
    Added httplib2.debuglevel which turns on debugging. 
+
+   Change Response._previous to Response.previous.
+
+   Addded Http.follow_all_redirects which forces
+   httplib2 to follow all redirects, as opposed to 
+   following only the safe redirects. This makes the
+   GData protocol easier to use.
+
+   All known bugs fixed to date.
 
 0.1.1
 
