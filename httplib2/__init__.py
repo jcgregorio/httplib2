@@ -38,7 +38,8 @@ from gettext import gettext as _
 
 __all__ = ['Http', 'Response', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
-  'UnimplementedDigestAuthOptionError', 'UnimplementedHmacDigestAuthOptionError']
+  'UnimplementedDigestAuthOptionError', 'UnimplementedHmacDigestAuthOptionError',
+  'debuglevel']
 
 
 # The httplib debug level, set to a non-zero value to get debug output
@@ -648,9 +649,25 @@ class Http:
         return (response, content)
 
     def request(self, uri, method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS):
-        """Returns an httplib2.Response and the response content.
+        """ Performs a single HTTP request.
+The 'uri' is the URI of the HTTP resource and can begin 
+with either 'http' or 'https'. The value of 'uri' must be an absolute URI.
 
-        uri    - MUST be an absolute HTTP URI
+The 'method' is the HTTP method to perform, such as GET, POST, DELETE, etc. 
+There is no restriction on the methods allowed.
+
+The 'body' is the entity body to be sent with the request. It is a string
+object.
+
+Any extra headers that are to be sent with the request should be provided in the
+'headers' dictionary.
+
+The maximum number of redirect to follow before raising an 
+exception is 'redirections. The default is 5.
+
+The return value is a tuple of (response, content), the first 
+being and instance of the 'Response' class, the second being 
+a string that contains the response entity body.
         """
         if headers is None:
             headers = {}
