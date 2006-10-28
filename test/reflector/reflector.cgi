@@ -7,6 +7,7 @@ import os
 
 print "Status: 200 Ok"
 print "Content-type: text/plain"
+print 'ETag: "alsjflaksjfasj"'
 print ""
 print "\n".join(["%s=%s" % (key, value) for key, value in  os.environ.iteritems()])
 
