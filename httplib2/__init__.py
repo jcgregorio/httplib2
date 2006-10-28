@@ -549,6 +549,8 @@ class Http:
 
         self.follow_all_redirects = False
 
+        self.ignore_etag = False
+
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
            that can be applied to requests.
@@ -712,7 +714,7 @@ a string that contains the response entity body.
         else:
             cachekey = None
                     
-        if method in ["PUT"] and self.cache and info.has_key('etag'):
+        if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag:
             # http://www.w3.org/1999/04/Editing/ 
             headers['if-match'] = info['etag']
 
@@ -747,7 +749,7 @@ a string that contains the response entity body.
                     return (response, content)
 
                 if entry_disposition == "STALE":
-                    if info.has_key('etag'):
+                    if info.has_key('etag') and not self.ignore_etag:
                         headers['if-none-match'] = info['etag']
                     if info.has_key('last-modified'):
                         headers['if-modified-since'] = info['last-modified']

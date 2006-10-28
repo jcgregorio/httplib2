@@ -252,6 +252,23 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 206)
         self.assertEqual(response.fromcache, False)
 
+    def testGetIgnoreEtag(self):
+        # Test that we can forcibly ignore ETags 
+        uri = urlparse.urljoin(base, "reflector/reflector.cgi")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertNotEqual(response['etag'], "")
+
+        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        d = self.reflector(content)
+        self.assertTrue(d.has_key('HTTP_IF_NONE_MATCH')) 
+
+        self.http.ignore_etag = True
+        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        d = self.reflector(content)
+        self.assertEqual(response.fromcache, False)
+        self.assertFalse(d.has_key('HTTP_IF_NONE_MATCH')) 
+
+
     def testGet304EndToEnd(self):
        # Test that end to end headers get overwritten in the cache
         uri = urlparse.urljoin(base, "304/end2end.cgi")
@@ -555,7 +572,7 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
 
     def reflector(self, content):
-        return  dict( [tuple(x.split("=")) for x in content.strip().split("\n")] )
+        return  dict( [tuple(x.split("=", 1)) for x in content.strip().split("\n")] )
 
     def testReflector(self):
         uri = urlparse.urljoin(base, "reflector/reflector.cgi")

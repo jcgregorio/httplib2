@@ -205,14 +205,17 @@ Remove all the names and passwords used for authentication.
 \end{methoddesc}
 
 \begin{memberdesc}[Http]{follow_all_redirects}
-If \code{false}, which is the default, only safe redirects are followed, where
+If \code{False}, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a \code{GET} or \code{HEAD} on the
-URI to which it is being redirected. If \code{true} then all redirects are followed.
+URI to which it is being redirected. If \code{True} then all redirects are followed.
 \end{memberdesc}
 
-
-
-
+\begin{memberdesc}[Http]{ignore_etag}
+Defaults to \code{False}. If True, then any etags present in the cached response
+are ignored when processing the current request, i.e. httplib2 does *not* use
+'if-match' for PUT or 'if-none-match' when GET or HEAD requests are made. This
+is mainly to deal with broken servers which supply an etag, but change it capriciously.
+\end{memberdesc}
 
 \subsection{Cache Objects}
 \label{cache-objects}
