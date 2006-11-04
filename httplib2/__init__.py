@@ -35,6 +35,7 @@ import random
 import sha
 import hmac
 from gettext import gettext as _
+from socket import gaierror
 
 __all__ = ['Http', 'Response', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
@@ -626,6 +627,12 @@ class Http:
                 if redirections:
                     if not response.has_key('location') and response.status != 300:
                         raise RedirectMissingLocation( _("Redirected but the response is missing a Location: header."))
+                    # Fix-up relative redirects (which violate an RFC 2616 MUST)
+                    if response.has_key('location'):
+                        location = response['location']
+                        (scheme, authority, path, query, fragment) = parse_uri(location)
+                        if authority == None:
+                            response['location'] = urlparse.urljoin(absolute_uri, location)
                     if response.status == 301 and method in ["GET", "HEAD"]:
                         response['-x-permanent-redirect-url'] = response['location']
                         _updateCache(headers, response, content, self.cache, cachekey)
@@ -634,11 +641,8 @@ class Http:
                     if headers.has_key('if-modified-since'):
                         del headers['if-modified-since']
                     if response.has_key('location'):
-                        old_response = copy.deepcopy(response)
                         location = response['location']
-                        (scheme, authority, path, query, fragment) = parse_uri(location)
-                        if authority == None:
-                            location = urlparse.urljoin(absolute_uri, location)
+                        old_response = copy.deepcopy(response)
                         redirect_method = ((response.status == 303) and (method not in ["GET", "HEAD"])) and "GET" or method
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
@@ -704,13 +708,13 @@ a string that contains the response entity body.
             cachekey = md5.new(defrag_uri).hexdigest()
             cached_value = self.cache.get(cachekey)
             if cached_value:
-                #try:
-                f = StringIO.StringIO(cached_value)
-                info = rfc822.Message(f)
-                content = cached_value.split('\r\n\r\n', 1)[1]
-                #except:
-                #    self.cache.delete(cachekey)
-                #    cachekey = None
+                try:
+                    f = StringIO.StringIO(cached_value)
+                    info = rfc822.Message(f)
+                    content = cached_value.split('\r\n\r\n', 1)[1]
+                except:
+                    self.cache.delete(cachekey)
+                    cachekey = None
         else:
             cachekey = None
                     
@@ -769,7 +773,11 @@ a string that contains the response entity body.
                 merged_response = Response(info)
                 if hasattr(response, "_stale_digest"):
                     merged_response._stale_digest = response._stale_digest
-                _updateCache(headers, merged_response, content, self.cache, cachekey)
+                try:
+                    _updateCache(headers, merged_response, content, self.cache, cachekey)
+                except:
+                    print locals()
+                    raise 
                 response = merged_response
                 response.status = 200
                 response.fromcache = True 
