@@ -232,8 +232,10 @@ def _decompressContent(response, new_content):
     try:
         if response.get('content-encoding', None) == 'gzip':
             content = gzip.GzipFile(fileobj=StringIO.StringIO(new_content)).read()
+            response['content-length'] = str(len(content))
         if response.get('content-encoding', None) == 'deflate':
             content = zlib.decompress(content)
+            response['content-length'] = str(len(content))
     except:
         content = ""
         raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'))
@@ -824,5 +826,11 @@ class Response(dict):
             for key, value in info.items(): 
                 self[key] = value 
             self.status = int(self['status'])
+
+    def __getattr__(self, name):
+        if name == 'dict':
+            return self 
+        else:  
+            raise AttributeError, name 
 
 

@@ -325,6 +325,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response['content-encoding'], "gzip")
+        self.assertEqual(int(response['content-length']), len("This is the final destination.\n"))
         self.assertEqual(content, "This is the final destination.\n")
 
     def testGetGZipFailure(self):
@@ -344,6 +345,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response['content-encoding'], "deflate")
+        self.assertEqual(int(response['content-length']), len("This is the final destination."))
         self.assertEqual(content, "This is the final destination.")
 
     def testGetDeflateFailure(self):
