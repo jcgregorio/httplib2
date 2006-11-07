@@ -130,14 +130,18 @@ class HttpTest(unittest.TestCase):
         # Test that we automatically follow 301 redirects
         # and that we cache the 301 response
         uri = urlparse.urljoin(base, "301/onestep.asis")
+        destination = urlparse.urljoin(base, "302/final-destination.txt")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
+        self.assertTrue(response.has_key('-location'))
+        self.assertEqual(response['-location'], destination)
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 301)
         self.assertEqual(response.previous.fromcache, False)
 
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
+        self.assertEqual(response['-location'], destination)
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 301)
         self.assertEqual(response.previous.fromcache, True)
@@ -146,8 +150,10 @@ class HttpTest(unittest.TestCase):
         # Test that we automatically follow 302 redirects
         # and that we DO NOT cache the 302 response
         uri = urlparse.urljoin(base, "302/onestep.asis")
+        destination = urlparse.urljoin(base, "302/final-destination.txt")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
+        self.assertEqual(response['-location'], destination)
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 302)
         self.assertEqual(response.previous.fromcache, False)
@@ -156,9 +162,11 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
+        self.assertEqual(response['-location'], destination)
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 302)
         self.assertEqual(response.previous.fromcache, False)
+        self.assertEqual(response.previous['-location'], uri)
 
         uri = urlparse.urljoin(base, "302/twostep.asis")
 
