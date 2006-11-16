@@ -15,7 +15,8 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "James Antill",
     "Xavier Verges Farrero",
     "Jonathan Feinberg",
-    "Blair Zajac"]
+    "Blair Zajac",
+    "Sam Ruby"]
 __license__ = "MIT"
 __version__ = "$Rev$"
 
