@@ -162,6 +162,16 @@ to Http.request. The \var{info} parameter is either
 an \class{rfc822.Message} or an \class{httplib.HTTPResponse} object.
 \end{classdesc}
 
+\begin{classdesc}{FileCache}{dir_name, \optional{safe=safename}}
+FileCache implements a Cache as a directory of files.
+The \var{dir_name} parameter is
+the name of the directory to use. If the directory does
+not exist then FileCache attempts to create the directory.
+The optional \var{safe} parameter is a funtion which generates
+the cache filename for each URI. A FileCache object is 
+constructed and used for caching when you pass a directory name
+into the constructor of \class{Http}.
+\end{classdesc}
 
 
 % If your module defines new object types (for a built-in module) or
