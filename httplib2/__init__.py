@@ -1,3 +1,4 @@
+from __future__ import generators
 """
 httplib2
 
@@ -111,6 +112,48 @@ def parse_uri(uri):
     """
     groups = URI.match(uri).groups()
     return (groups[1], groups[3], groups[4], groups[6], groups[8])
+
+def urlnorm(uri):
+    (scheme, authority, path, query, fragment) = parse_uri(uri)
+    authority = authority.lower()
+    if not path: 
+        path = "/"
+    # Could do syntax based normalization of the URI before
+    # computing the digest. See Section 6.2.2 of Std 66.
+    request_uri = query and "?".join([path, query]) or path
+    defrag_uri = scheme + "://" + authority + request_uri
+    return scheme, authority, request_uri, defrag_uri
+
+
+# Cache filename construction (original borrowed from Venus http://intertwingly.net/code/venus/)
+re_url_scheme    = re.compile(r'^\w+://')
+re_slash         = re.compile(r'[?/:|]+')
+
+def safename(filename):
+    """Return a filename suitable for the cache.
+
+    Strips dangerous and common characters to create a filename we
+    can use to store the cache in.
+    """
+
+    try:
+        if re_url_scheme.match(filename):
+            if isinstance(filename,str):
+                filename=filename.decode('utf-8').encode('idna')
+            else:
+                filename=filename.encode('idna')
+    except:
+        pass
+    if isinstance(filename,unicode):
+        filename=filename.encode('utf-8')
+    filemd5 = md5.new(filename).hexdigest()
+    filename = re_url_scheme.sub("", filename)
+    filename = re_slash.sub(",", filename)
+
+    # limit length of filename
+    if len(filename)>200:
+        filename=filename[:200]
+    return ",".join((filename, filemd5))
 
 NORMALIZE_SPACE = re.compile(r'(?:\r\n)?[ \t]+')
 def _normalize_headers(headers):
@@ -496,20 +539,23 @@ AUTH_SCHEME_CLASSES = {
 
 AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 
+def _md5(s):
+    return 
 
 class FileCache:
     """Uses a local directory as a store for cached files.
     Not really safe to use if multiple threads or processes are going to 
     be running on the same cache.
     """
-    def __init__(self, cache):
+    def __init__(self, cache, safe=safename): # use safe=lambda x: md5.new(x).hexdigest() for the old behavior
         self.cache = cache
+        self.safe = safe
         if not os.path.exists(cache): 
             os.makedirs(self.cache)
 
     def get(self, key):
         retval = None
-        cacheFullPath = os.path.join(self.cache, key)
+        cacheFullPath = os.path.join(self.cache, self.safe(key))
         try:
             f = file(cacheFullPath, "r")
             retval = f.read()
@@ -519,13 +565,13 @@ class FileCache:
         return retval
 
     def set(self, key, value):
-        cacheFullPath = os.path.join(self.cache, key)
+        cacheFullPath = os.path.join(self.cache, self.safe(key))
         f = file(cacheFullPath, "w")
         f.write(value)
         f.close()
 
     def delete(self, key):
-        cacheFullPath = os.path.join(self.cache, key)
+        cacheFullPath = os.path.join(self.cache, self.safe(key))
         if os.path.exists(cacheFullPath):
             os.remove(cacheFullPath)
 
@@ -688,14 +734,7 @@ a string that contains the response entity body.
         if not headers.has_key('user-agent'):
             headers['user-agent'] = "Python-httplib2/%s" % __version__
 
-        (scheme, authority, path, query, fragment) = parse_uri(uri)
-        authority = authority.lower()
-        if not path: 
-            path = "/"
-        # Could do syntax based normalization of the URI before
-        # computing the digest. See Section 6.2.2 of Std 66.
-        request_uri = query and "?".join([path, query]) or path
-        defrag_uri = scheme + "://" + authority + request_uri
+        (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
 
         if not self.connections.has_key(scheme+":"+authority):
             connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
@@ -710,7 +749,7 @@ a string that contains the response entity body.
         info = rfc822.Message(StringIO.StringIO(""))
         cached_value = None
         if self.cache:
-            cachekey = md5.new(defrag_uri).hexdigest()
+            cachekey = defrag_uri
             cached_value = self.cache.get(cachekey)
             if cached_value:
                 try:

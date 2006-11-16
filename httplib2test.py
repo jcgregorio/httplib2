@@ -39,6 +39,34 @@ class ParserTest(unittest.TestCase):
         self.assertEqual( ('http', 'example.com', '/path', 'a=1&b=2', 'fred' ), httplib2.parse_uri("http://example.com/path?a=1&b=2#fred"))
 
 
+class UrlNormTest(unittest.TestCase):
+    def test(self):
+        self.assertEqual( "http://example.org/", httplib2.urlnorm("http://example.org")[-1])
+        self.assertEqual( "http://example.org/", httplib2.urlnorm("http://EXAMple.org")[-1])
+        self.assertEqual( "http://example.org/?=b", httplib2.urlnorm("http://EXAMple.org?=b")[-1])
+        self.assertEqual( "http://example.org/mypath?a=b", httplib2.urlnorm("http://EXAMple.org/mypath?a=b")[-1])
+        self.assertEqual( "http://localhost:80/", httplib2.urlnorm("http://localhost:80")[-1])
+
+class UrlSafenameTest(unittest.TestCase):
+    def test(self):
+        # Test that different URIs end up generating different safe names
+        self.assertEqual( "example.org,fred,a=b,58489f63a7a83c3b7794a6a398ee8b1f", httplib2.safename("http://example.org/fred/?a=b"))
+        self.assertEqual( "example.org,fred,a=b,8c5946d56fec453071f43329ff0be46b", httplib2.safename("http://example.org/fred?/a=b"))
+        self.assertEqual( "www.example.org,fred,a=b,499c44b8d844a011b67ea2c015116968", httplib2.safename("http://www.example.org/fred?/a=b"))
+        self.assertEqual( httplib2.safename(httplib2.urlnorm("http://www")[-1]), httplib2.safename(httplib2.urlnorm("http://WWW")[-1]))
+        self.assertEqual( "www.example.org,fred,a=b,692e843a333484ce0095b070497ab45d", httplib2.safename("https://www.example.org/fred?/a=b"))
+        self.assertNotEqual( httplib2.safename("http://www"), httplib2.safename("https://www"))
+        # Test the max length limits
+        uri = "http://" + ("w" * 200) + ".org"
+        uri2 = "http://" + ("w" * 201) + ".org"
+        self.assertNotEqual( httplib2.safename(uri2), httplib2.safename(uri))
+        # Max length should be 200 + 1 (",") + 32
+        self.assertEqual(233, len(httplib2.safename(uri2)))
+        self.assertEqual(233, len(httplib2.safename(uri)))
+        # Unicode
+        self.assertEqual( "xn--http,-4y1d.org,fred,a=b,579924c35db315e5a32e3d9963388193", httplib2.safename(u"http://\u2304.org/fred/?a=b"))
+
+
 class HttpTest(unittest.TestCase):
     def setUp(self):
         cacheDirName = ".cache"
