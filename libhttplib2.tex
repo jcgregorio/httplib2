@@ -289,7 +289,7 @@ going back through the responses to the very first response.
 Will be \code{None} if there are no previous respones.
 \end{memberdesc}
 
-The Response object also has a special key value \code{-location}, that
+The Response object also populates the header \code{content-location}, that
 contains the URI that was ultimately requested. This is useful if
 redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,

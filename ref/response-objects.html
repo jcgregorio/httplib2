@@ -96,7 +96,7 @@ Will be <code>None</code> if there are no previous respones.
 </dl>
 
 <P>
-The Response object also has a special key value <code>-location</code>, that
+The Response object also populates the header <code>content-location</code>, that
 contains the URI that was ultimately requested. This is useful if
 redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,

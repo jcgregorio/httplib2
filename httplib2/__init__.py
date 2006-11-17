@@ -698,7 +698,8 @@ class Http:
                             response['location'] = urlparse.urljoin(absolute_uri, location)
                     if response.status == 301 and method in ["GET", "HEAD"]:
                         response['-x-permanent-redirect-url'] = response['location']
-                        response['-location'] = absolute_uri 
+                        if not response.has_key('content-location'):
+                            response['content-location'] = absolute_uri 
                         _updateCache(headers, response, content, self.cache, cachekey)
                     if headers.has_key('if-none-match'):
                         del headers['if-none-match']
@@ -707,7 +708,8 @@ class Http:
                     if response.has_key('location'):
                         location = response['location']
                         old_response = copy.deepcopy(response)
-                        old_response['-location'] = absolute_uri 
+                        if not old_response.has_key('content-location'):
+                            old_response['content-location'] = absolute_uri 
                         redirect_method = ((response.status == 303) and (method not in ["GET", "HEAD"])) and "GET" or method
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
@@ -715,7 +717,8 @@ class Http:
                     raise RedirectLimit( _("Redirected more times than rediection_limit allows."))
             elif response.status in [200, 203] and method == "GET":
                 # Don't cache 206's since we aren't going to handle byte range requests
-                response['-location'] = absolute_uri 
+                if not response.has_key('content-location'):
+                    response['content-location'] = absolute_uri 
                 _updateCache(headers, response, content, self.cache, cachekey)
 
         return (response, content)
