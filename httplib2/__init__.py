@@ -277,12 +277,14 @@ def _entry_disposition(response_headers, request_headers):
 def _decompressContent(response, new_content):
     content = new_content
     try:
-        if response.get('content-encoding', None) == 'gzip':
-            content = gzip.GzipFile(fileobj=StringIO.StringIO(new_content)).read()
+        encoding = response.get('content-encoding', None)
+        if encoding in ['gzip', 'deflate']:
+            if encoding == 'gzip':
+                content = gzip.GzipFile(fileobj=StringIO.StringIO(new_content)).read()
+            if encoding == 'deflate':
+                content = zlib.decompress(content)
             response['content-length'] = str(len(content))
-        if response.get('content-encoding', None) == 'deflate':
-            content = zlib.decompress(content)
-            response['content-length'] = str(len(content))
+            del response['content-encoding']
     except:
         content = ""
         raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'))
@@ -297,10 +299,19 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
         else:
             info = email.Message.Message()
             for key, value in response_headers.iteritems():
-                info[key] = value
-            text = info.as_string()
-            text = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", text)
-            text += content
+                if key not in ['status','content-encoding','transfer-encoding']:
+                    info[key] = value
+
+            status = response_headers.status
+            if status == 304:
+                status = 200
+
+            status_header = 'status: %d\r\n' % response_headers.status
+
+            header_str = info.as_string()
+
+            header_str = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", header_str)
+            text = "".join([status_header, header_str, content])
 
             cache.set(cachekey, text)
 

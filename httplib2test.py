@@ -26,6 +26,7 @@ if not hasattr(unittest.TestCase, 'assertTrue'):
 # The test resources base uri
 base = 'http://bitworking.org/projects/httplib2/test/'
 #base = 'http://localhost/projects/httplib2/test/'
+cacheDirName = ".cache"
 
 class ParserTest(unittest.TestCase):
     def testFromStd66(self):
@@ -68,9 +69,9 @@ class UrlSafenameTest(unittest.TestCase):
         self.assertEqual( "xn--http,-4y1d.org,fred,a=b,579924c35db315e5a32e3d9963388193", httplib2.safename(u"http://\u2304.org/fred/?a=b"))
 
 
+
 class HttpTest(unittest.TestCase):
     def setUp(self):
-        cacheDirName = ".cache"
         if os.path.exists(cacheDirName): 
             [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
         self.http = httplib2.Http(cacheDirName)
@@ -279,6 +280,13 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
 
+        cache_file_name = os.path.join(cacheDirName, httplib2.safename(httplib2.urlnorm(uri)[-1]))
+        f = open(cache_file_name, "r")
+        status_line = f.readline()
+        f.close()
+
+        self.assertTrue(status_line.startswith("status:"))
+
         (response, content) = self.http.request(uri, "HEAD")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
@@ -359,7 +367,7 @@ class HttpTest(unittest.TestCase):
         uri = urlparse.urljoin(base, "gzip/final-destination.txt")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
-        self.assertEqual(response['content-encoding'], "gzip")
+        self.assertFalse(response.has_key('content-encoding'))
         self.assertEqual(int(response['content-length']), len("This is the final destination.\n"))
         self.assertEqual(content, "This is the final destination.\n")
 
@@ -379,7 +387,7 @@ class HttpTest(unittest.TestCase):
         uri = urlparse.urljoin(base, "deflate/deflated.asis")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
-        self.assertEqual(response['content-encoding'], "deflate")
+        self.assertFalse(response.has_key('content-encoding'))
         self.assertEqual(int(response['content-length']), len("This is the final destination."))
         self.assertEqual(content, "This is the final destination.")
 
