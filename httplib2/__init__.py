@@ -119,6 +119,7 @@ def parse_uri(uri):
 def urlnorm(uri):
     (scheme, authority, path, query, fragment) = parse_uri(uri)
     authority = authority.lower()
+    scheme = scheme.lower()
     if not path: 
         path = "/"
     # Could do syntax based normalization of the URI before
@@ -298,12 +299,6 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
             for key, value in response_headers.iteritems():
                 info[key] = value
             text = info.as_string()
-            #from cStringIO import StringIO
-            #from email.Generator import Generator
-            #fp = StringIO()
-            #g = Generator(fp, mangle_from_=False, maxheaderlen=60)
-            #g.flatten(info)
-            #text = fp.getvalue()
             text = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", text)
             text += content
 

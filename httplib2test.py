@@ -46,6 +46,7 @@ class UrlNormTest(unittest.TestCase):
         self.assertEqual( "http://example.org/?=b", httplib2.urlnorm("http://EXAMple.org?=b")[-1])
         self.assertEqual( "http://example.org/mypath?a=b", httplib2.urlnorm("http://EXAMple.org/mypath?a=b")[-1])
         self.assertEqual( "http://localhost:80/", httplib2.urlnorm("http://localhost:80")[-1])
+        self.assertEqual( httplib2.urlnorm("http://localhost:80/"), httplib2.urlnorm("HTTP://LOCALHOST:80"))
 
 class UrlSafenameTest(unittest.TestCase):
     def test(self):
