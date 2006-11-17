@@ -22,7 +22,9 @@ __version__ = "$Rev$"
 
 import re 
 import md5
-import rfc822
+import email
+import email.Utils
+import email.Message
 import StringIO
 import gzip
 import zlib
@@ -253,13 +255,13 @@ def _entry_disposition(response_headers, request_headers):
     elif cc.has_key('only-if-cached'):
         retval = "FRESH"
     elif response_headers.has_key('date'):
-        date = calendar.timegm(rfc822.parsedate_tz(response_headers['date']))
+        date = calendar.timegm(email.Utils.parsedate_tz(response_headers['date']))
         now = time.time()
         current_age = max(0, now - date)
         if cc_response.has_key('max-age'):
             freshness_lifetime = int(cc_response['max-age'])
         elif response_headers.has_key('expires'):
-            expires = rfc822.parsedate_tz(response_headers['expires'])
+            expires = email.Utils.parsedate_tz(response_headers['expires'])
             freshness_lifetime = max(0, calendar.timegm(expires) - date)
         else:
             freshness_lifetime = 0
@@ -292,14 +294,20 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
         if cc.has_key('no-store') or cc_response.has_key('no-store'):
             cache.delete(cachekey)
         else:
-            f = StringIO.StringIO("")
-            info = rfc822.Message(StringIO.StringIO(""))
+            info = email.Message.Message()
             for key, value in response_headers.iteritems():
                 info[key] = value
-            f.write(str(info))
-            f.write("\r\n\r\n")
-            f.write(content)
-            cache.set(cachekey, f.getvalue())
+            text = info.as_string()
+            #from cStringIO import StringIO
+            #from email.Generator import Generator
+            #fp = StringIO()
+            #g = Generator(fp, mangle_from_=False, maxheaderlen=60)
+            #g.flatten(info)
+            #text = fp.getvalue()
+            text = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", text)
+            text += content
+
+            cache.set(cachekey, text)
 
 def _cnonce():
     dig = md5.new("%s:%s" % (time.ctime(), ["0123456789"[random.randrange(0, 9)] for i in range(20)])).hexdigest()
@@ -747,17 +755,16 @@ a string that contains the response entity body.
         if method in ["GET", "HEAD"] and 'range' not in headers:
             headers['accept-encoding'] = 'compress, gzip'
 
-        info = rfc822.Message(StringIO.StringIO(""))
+        info = email.Message.Message()
         cached_value = None
         if self.cache:
             cachekey = defrag_uri
             cached_value = self.cache.get(cachekey)
             if cached_value:
                 try:
-                    f = StringIO.StringIO(cached_value)
-                    info = rfc822.Message(f)
+                    info = email.message_from_string(cached_value)
                     content = cached_value.split('\r\n\r\n', 1)[1]
-                except:
+                except Exception, e:
                     self.cache.delete(cachekey)
                     cachekey = None
                     cached_value = None
@@ -840,7 +847,7 @@ a string that contains the response entity body.
  
 
 class Response(dict):
-    """An object more like rfc822.Message than httplib.HTTPResponse."""
+    """An object more like email.Message than httplib.HTTPResponse."""
    
     """Is this response from our local cache"""
     fromcache = False
@@ -857,7 +864,7 @@ class Response(dict):
     previous = None
 
     def __init__(self, info):
-        # info is either an rfc822.Message or 
+        # info is either an email.Message or 
         # an httplib.HTTPResponse object.
         if isinstance(info, httplib.HTTPResponse):
             for key, value in info.getheaders(): 
@@ -866,7 +873,7 @@ class Response(dict):
             self['status'] = str(self.status)
             self.reason = info.reason
             self.version = info.version
-        elif isinstance(info, rfc822.Message):
+        elif isinstance(info, email.Message.Message):
             for key, value in info.items(): 
                 self[key] = value 
             self.status = int(self['status'])

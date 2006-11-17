@@ -263,8 +263,6 @@ class HttpTest(unittest.TestCase):
     def test303ForDifferentMethods(self):
         # Test that all methods can be used
         uri = urlparse.urljoin(base, "303/redirect-to-reflector.cgi")
-        # HEAD really does send a HEAD, but apparently Apache changes 
-        # every HEAD into a GET, so our script returns x-method: GET.
         for (method, method_on_303) in [("PUT", "GET"), ("DELETE", "GET"), ("POST", "GET"), ("GET", "GET"), ("HEAD", "GET")]: 
             (response, content) = self.http.request(uri, method, body=" ")
             self.assertEqual(response['x-method'], method_on_303)
