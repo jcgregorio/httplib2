@@ -21,6 +21,7 @@ __license__ = "MIT"
 __version__ = "$Rev$"
 
 import re 
+import sys 
 import md5
 import email
 import email.Utils
@@ -40,7 +41,12 @@ import sha
 import hmac
 from gettext import gettext as _
 from socket import gaierror
-from iri2uri import iri2uri
+
+if sys.version_info >= (2,3):
+    from iri2uri import iri2uri
+else:
+    def iri2uri(uri):
+        return uri
 
 __all__ = ['Http', 'Response', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 

@@ -15,7 +15,7 @@ __history__ = """ """
 __version__ = "0.1 ($Rev: 118 $)"
 
 
-import unittest, httplib2, os, urlparse, time, base64
+import sys, unittest, httplib2, os, urlparse, time, base64
 
 
 # Python 2.3 support
@@ -66,7 +66,8 @@ class UrlSafenameTest(unittest.TestCase):
         self.assertEqual(233, len(httplib2.safename(uri2)))
         self.assertEqual(233, len(httplib2.safename(uri)))
         # Unicode
-        self.assertEqual( "xn--http,-4y1d.org,fred,a=b,579924c35db315e5a32e3d9963388193", httplib2.safename(u"http://\u2304.org/fred/?a=b"))
+        if sys.version_info >= (2,3):
+            self.assertEqual( "xn--http,-4y1d.org,fred,a=b,579924c35db315e5a32e3d9963388193", httplib2.safename(u"http://\u2304.org/fred/?a=b"))
 
 
 
@@ -78,11 +79,12 @@ class HttpTest(unittest.TestCase):
         self.http.clear_credentials()
 
     def testGetIRI(self):
-        uri = urlparse.urljoin(base, u"reflector/reflector.cgi?d=\N{CYRILLIC CAPITAL LETTER DJE}")
-        (response, content) = self.http.request(uri, "GET")
-        d = self.reflector(content)
-        self.assertTrue(d.has_key('QUERY_STRING')) 
-        self.assertTrue(d['QUERY_STRING'].find('%D0%82') > 0) 
+        if sys.version_info >= (2,3):
+            uri = urlparse.urljoin(base, u"reflector/reflector.cgi?d=\N{CYRILLIC CAPITAL LETTER DJE}")
+            (response, content) = self.http.request(uri, "GET")
+            d = self.reflector(content)
+            self.assertTrue(d.has_key('QUERY_STRING')) 
+            self.assertTrue(d['QUERY_STRING'].find('%D0%82') > 0) 
 
     
     def testGetIsDefaultMethod(self):
