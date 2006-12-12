@@ -77,6 +77,14 @@ class HttpTest(unittest.TestCase):
         self.http = httplib2.Http(cacheDirName)
         self.http.clear_credentials()
 
+    def testGetIRI(self):
+        uri = urlparse.urljoin(base, u"reflector/reflector.cgi?d=\N{CYRILLIC CAPITAL LETTER DJE}")
+        (response, content) = self.http.request(uri, "GET")
+        d = self.reflector(content)
+        self.assertTrue(d.has_key('QUERY_STRING')) 
+        self.assertTrue(d['QUERY_STRING'].find('%D0%82') > 0) 
+
+    
     def testGetIsDefaultMethod(self):
         # Test that GET is the default method
         uri = urlparse.urljoin(base, "methods/method_reflector.cgi")

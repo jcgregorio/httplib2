@@ -40,6 +40,7 @@ import sha
 import hmac
 from gettext import gettext as _
 from socket import gaierror
+from iri2uri import iri2uri
 
 __all__ = ['Http', 'Response', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
@@ -125,6 +126,7 @@ def urlnorm(uri):
     # Could do syntax based normalization of the URI before
     # computing the digest. See Section 6.2.2 of Std 66.
     request_uri = query and "?".join([path, query]) or path
+    scheme = scheme.lower()
     defrag_uri = scheme + "://" + authority + request_uri
     return scheme, authority, request_uri, defrag_uri
 
@@ -143,9 +145,10 @@ def safename(filename):
     try:
         if re_url_scheme.match(filename):
             if isinstance(filename,str):
-                filename=filename.decode('utf-8').encode('idna')
+                filename = filename.decode('utf-8')
+                filename = filename.encode('idna')
             else:
-                filename=filename.encode('idna')
+                filename = filename.encode('idna')
     except:
         pass
     if isinstance(filename,unicode):
@@ -751,6 +754,8 @@ a string that contains the response entity body.
 
         if not headers.has_key('user-agent'):
             headers['user-agent'] = "Python-httplib2/%s" % __version__
+
+        uri = iri2uri(uri)
 
         (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
 
