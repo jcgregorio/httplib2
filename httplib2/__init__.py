@@ -58,7 +58,7 @@ __all__ = ['Http', 'Response', 'HttpLib2Error',
 debuglevel = 0
 
 # Python 2.3 support
-if 'sorted' not in __builtins__:
+if sys.version_info < (2,4):
     def sorted(seq):
         seq.sort()
         return seq
