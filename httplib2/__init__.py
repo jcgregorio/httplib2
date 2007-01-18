@@ -67,7 +67,6 @@ if sys.version_info < (2,4):
 def HTTPResponse__getheaders(self):
     """Return list of (header, value) tuples."""
     if self.msg is None:
-        print "================================"
         raise httplib.ResponseNotReady()
     return self.msg.items()
 
@@ -427,13 +426,13 @@ class DigestAuthentication(Authentication):
 
     def response(self, response, content):
         if not response.has_key('authentication-info'):
-            challenge = _parse_www_authenticate(response, 'www-authenticate')['digest']
+            challenge = _parse_www_authenticate(response, 'www-authenticate').get('digest', {})
             if 'true' == challenge.get('stale'):
                 self.challenge['nonce'] = challenge['nonce']
                 self.challenge['nc'] = 1 
                 return True
         else:
-            updated_challenge = _parse_www_authenticate(response, 'authentication-info')['digest']
+            updated_challenge = _parse_www_authenticate(response, 'authentication-info').get('digest', {})
 
             if updated_challenge.has_key('nextnonce'):
                 self.challenge['nonce'] = updated_challenge['nextnonce']
@@ -449,7 +448,6 @@ class HmacDigestAuthentication(Authentication):
         Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
         challenge = _parse_www_authenticate(response, 'www-authenticate')
         self.challenge = challenge['hmacdigest']
-        print self.challenge
         # TODO: self.challenge['domain']
         self.challenge['reason'] = self.challenge.get('reason', 'unauthorized')
         if self.challenge['reason'] not in ['unauthorized', 'integrity']:
@@ -475,9 +473,6 @@ class HmacDigestAuthentication(Authentication):
                     self.pwhashmod.new("".join([self.credentials[1], self.challenge['salt']])).hexdigest().lower(),
                     ":", self.challenge['realm']
                     ])
-        print response['www-authenticate']
-        print "".join([self.credentials[1], self.challenge['salt']])
-        print "key_str = %s" % self.key
         self.key = self.pwhashmod.new(self.key).hexdigest().lower()
 
     def request(self, method, request_uri, headers, content):
@@ -488,8 +483,6 @@ class HmacDigestAuthentication(Authentication):
         created = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
         cnonce = _cnonce()
         request_digest = "%s:%s:%s:%s:%s" % (method, request_uri, cnonce, self.challenge['snonce'], headers_val)
-        print "key = %s" % self.key
-        print "msg = %s" % request_digest
         request_digest  = hmac.new(self.key, request_digest, self.hashmod).hexdigest().lower()
         headers['Authorization'] = 'HMACDigest username="%s", realm="%s", snonce="%s", cnonce="%s", uri="%s", created="%s", response="%s", headers="%s"' % (
                 self.credentials[0], 
