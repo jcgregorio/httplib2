@@ -686,6 +686,16 @@ class HttpPrivateTest(unittest.TestCase):
         }
         self.assertEqual("TRANSPARENT", httplib2._entry_disposition(response_headers, request_headers))
 
+    def testMaxAgeNonNumeric(self):
+        # Test that no-cache makes our request TRANSPARENT
+        response_headers = {
+            'cache-control': 'max-age=fred, min-fresh=barney'
+        }
+        request_headers = {
+        }
+        self.assertEqual("STALE", httplib2._entry_disposition(response_headers, request_headers))
+
+
     def testExpirationModelNoCacheResponse(self):
         # The date and expires point to an entry that should be
         # FRESH, but the no-cache over-rides that.
