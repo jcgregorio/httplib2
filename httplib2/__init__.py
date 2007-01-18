@@ -269,16 +269,26 @@ def _entry_disposition(response_headers, request_headers):
         now = time.time()
         current_age = max(0, now - date)
         if cc_response.has_key('max-age'):
-            freshness_lifetime = int(cc_response['max-age'])
+            try:
+                freshness_lifetime = int(cc_response['max-age'])
+            except:
+                freshness_lifetime = 0
         elif response_headers.has_key('expires'):
             expires = email.Utils.parsedate_tz(response_headers['expires'])
             freshness_lifetime = max(0, calendar.timegm(expires) - date)
         else:
             freshness_lifetime = 0
         if cc.has_key('max-age'):
-            freshness_lifetime = min(freshness_lifetime, int(cc['max-age']))
+            try:
+                freshness_lifetime = int(cc['max-age'])
+            except:
+                freshness_lifetime = 0
         if cc.has_key('min-fresh'):
-            current_age += int(cc['min-fresh'])
+            try:
+                min_fresh = int(cc['min-fresh'])
+            except:
+                min_fresh = 0
+            current_age += min_fresh 
         if freshness_lifetime > current_age:
             retval = "FRESH"
     return retval 
