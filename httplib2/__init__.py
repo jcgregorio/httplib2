@@ -795,7 +795,7 @@ a string that contains the response entity body.
         else:
             cachekey = None
                     
-        if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag:
+        if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
             # http://www.w3.org/1999/04/Editing/ 
             headers['if-match'] = info['etag']
 
@@ -830,9 +830,9 @@ a string that contains the response entity body.
                     return (response, content)
 
                 if entry_disposition == "STALE":
-                    if info.has_key('etag') and not self.ignore_etag:
+                    if info.has_key('etag') and not self.ignore_etag and not 'if-none-match' in headers:
                         headers['if-none-match'] = info['etag']
-                    if info.has_key('last-modified'):
+                    if info.has_key('last-modified') and not 'last-modified' in headers:
                         headers['if-modified-since'] = info['last-modified']
                 elif entry_disposition == "TRANSPARENT":
                     pass

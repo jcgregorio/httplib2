@@ -321,6 +321,21 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.fromcache, False)
         self.assertFalse(d.has_key('HTTP_IF_NONE_MATCH')) 
 
+    def testOverrideEtag(self):
+        # Test that we can forcibly ignore ETags 
+        uri = urlparse.urljoin(base, "reflector/reflector.cgi")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertNotEqual(response['etag'], "")
+
+        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        d = self.reflector(content)
+        self.assertTrue(d.has_key('HTTP_IF_NONE_MATCH')) 
+        self.assertNotEqual(d['HTTP_IF_NONE_MATCH'], "fred") 
+
+        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0', 'if=none-match': 'fred'})
+        d = self.reflector(content)
+        self.assertTrue(d.has_key('HTTP_IF_NONE_MATCH')) 
+        self.assertEqual(d['HTTP_IF_NONE_MATCH'], "fred") 
 
     def testGet304EndToEnd(self):
        # Test that end to end headers get overwritten in the cache
@@ -512,6 +527,21 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         (response, content) = self.http.request(uri, "PUT")
         self.assertEqual(response.status, 412)
+
+    def testUpdateUsesCachedETagOverridden(self):
+        # Test that we natively support http://www.w3.org/1999/04/Editing/ 
+        uri = urlparse.urljoin(base, "conditional-updates/test.cgi")
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False)
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True)
+        (response, content) = self.http.request(uri, "PUT", headers={'if-match': 'fred'})
+        self.assertEqual(response.status, 412)
+
+
 
     def testBasicAuth(self):
         # Test Basic Authentication
