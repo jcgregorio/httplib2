@@ -82,6 +82,7 @@ class RedirectLimit(HttpLib2Error): pass
 class FailedToDecompressContent(HttpLib2Error): pass
 class UnimplementedDigestAuthOptionError(HttpLib2Error): pass
 class UnimplementedHmacDigestAuthOptionError(HttpLib2Error): pass
+class RelativeURIError(HttpLib2Error): pass
 
 # Open Items:
 # -----------
@@ -125,6 +126,8 @@ def parse_uri(uri):
 
 def urlnorm(uri):
     (scheme, authority, path, query, fragment) = parse_uri(uri)
+    if not scheme or not authority:
+        raise RelativeURIError("Only absolute URIs are allowed. uri = %s" % uri)
     authority = authority.lower()
     scheme = scheme.lower()
     if not path: 
