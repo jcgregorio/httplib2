@@ -83,6 +83,13 @@ class HttpTest(unittest.TestCase):
         self.http = httplib2.Http(cacheDirName)
         self.http.clear_credentials()
 
+    def testGetUnknownServer(self):
+        try:
+            self.http.request("http://fred.bitworking.org/")
+            self.fail("An httplib2.ServerNotFoundError Exception must be thrown on an unresolvable server.")
+        except httplib2.ServerNotFoundError:
+            pass
+
     def testGetIRI(self):
         if sys.version_info >= (2,3):
             uri = urlparse.urljoin(base, u"reflector/reflector.cgi?d=\N{CYRILLIC CAPITAL LETTER DJE}")

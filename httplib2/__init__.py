@@ -83,6 +83,7 @@ class FailedToDecompressContent(HttpLib2Error): pass
 class UnimplementedDigestAuthOptionError(HttpLib2Error): pass
 class UnimplementedHmacDigestAuthOptionError(HttpLib2Error): pass
 class RelativeURIError(HttpLib2Error): pass
+class ServerNotFoundError(HttpLib2Error): pass
 
 # Open Items:
 # -----------
@@ -657,6 +658,8 @@ class Http:
             try:
                 conn.request(method, request_uri, body, headers)
                 response = conn.getresponse()
+            except gaierror:
+                raise ServerNotFoundError("Unable to find the server at %s" % request_uri)
             except:
                 if i == 0:
                     conn.close()
