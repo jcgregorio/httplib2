@@ -545,8 +545,17 @@ class GoogleLoginAuthentication(Authentication):
     def __init__(self, credentials, host, request_uri, headers, response, content, http):
         from urllib import urlencode
         Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
+        challenge = _parse_www_authenticate(response, 'www-authenticate')
+        service = challenge['googlelogin'].get('service', 'xapi')
+        # Bloggger actually returns the service in the challenge
+        # For the rest we guess based on the URI
+        if service == 'xapi' and  request_uri.find("calendar") > 0:
+            service = "cl"
+        # No point in guessing Base or Spreadsheet
+        #elif request_uri.find("spreadsheets") > 0:
+        #    service = "wise"
 
-        auth = dict(Email=credentials[0], Passwd=credentials[1], service='cl', source=headers['user-agent'])
+        auth = dict(Email=credentials[0], Passwd=credentials[1], service=service, source=headers['user-agent'])
         resp, content = self.http.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
         lines = content.split('\n')
         d = dict([tuple(line.split("=", 1)) for line in lines if line])
