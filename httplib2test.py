@@ -15,7 +15,14 @@ __history__ = """ """
 __version__ = "0.1 ($Rev: 118 $)"
 
 
-import sys, unittest, httplib2, os, urlparse, time, base64
+import sys
+import unittest
+import httplib
+import httplib2
+import os
+import urlparse
+import time
+import base64
 
 
 # Python 2.3 support
@@ -27,6 +34,26 @@ if not hasattr(unittest.TestCase, 'assertTrue'):
 base = 'http://bitworking.org/projects/httplib2/test/'
 #base = 'http://localhost/projects/httplib2/test/'
 cacheDirName = ".cache"
+
+
+class CredentialsTest(unittest.TestCase):
+    def test(self):
+        c = httplib2.Credentials()
+        c.add("joe", "password")
+        self.assertEqual(("joe", "password"), list(c.iter("bitworking.org"))[0])
+        self.assertEqual(("joe", "password"), list(c.iter(""))[0])
+        c.add("fred", "password2", "wellformedweb.org")
+        self.assertEqual(("joe", "password"), list(c.iter("bitworking.org"))[0])
+        self.assertEqual(1, len(list(c.iter("bitworking.org"))))
+        self.assertEqual(2, len(list(c.iter("wellformedweb.org"))))
+        self.assertTrue(("fred", "password2") in list(c.iter("wellformedweb.org")))
+        c.clear()
+        self.assertEqual(0, len(list(c.iter("bitworking.org"))))
+        c.add("fred", "password2", "wellformedweb.org")
+        self.assertTrue(("fred", "password2") in list(c.iter("wellformedweb.org")))
+        self.assertEqual(0, len(list(c.iter("bitworking.org"))))
+        self.assertEqual(0, len(list(c.iter(""))))
+
 
 class ParserTest(unittest.TestCase):
     def testFromStd66(self):
@@ -274,6 +301,31 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request("https://google.com/adsense", "GET")
         self.assertEqual(200, response.status)
         self.assertNotEqual(None, response.previous)
+
+
+    def testGetViaHttpsKeyCert(self):
+        """At this point I can only test
+          that the key and cert files are passed in 
+          correctly to httplib. It would be nice to have 
+          a real https endpoint to test against.
+        """
+        http = httplib2.Http()
+        try:
+            (response, content) = http.request("https://example.org", "GET")
+        except:
+            pass
+        self.assertEqual(http.connections["https:example.org"].key_file, None)
+        self.assertEqual(http.connections["https:example.org"].cert_file, None)
+
+
+        http.add_certificate("akeyfile", "acertfile", "bitworking.org")
+        try:
+            (response, content) = http.request("https://bitworking.org", "GET")
+        except:
+            pass
+        self.assertEqual(http.connections["https:bitworking.org"].key_file, "akeyfile")
+        self.assertEqual(http.connections["https:bitworking.org"].cert_file, "acertfile")
+
 
     def testGet303(self):
         # Do a follow-up GET on a Location: header
@@ -572,6 +624,38 @@ class HttpTest(unittest.TestCase):
         uri = urlparse.urljoin(base, "basic/file.txt")
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
+
+    def testBasicAuthWithDomain(self):
+        # Test Basic Authentication
+        uri = urlparse.urljoin(base, "basic/file.txt")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 401)
+
+        uri = urlparse.urljoin(base, "basic/")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 401)
+
+        self.http.add_credentials('joe', 'password', "example.org")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 401)
+
+        uri = urlparse.urljoin(base, "basic/file.txt")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 401)
+
+        domain = urlparse.urlparse(base)[1] 
+        self.http.add_credentials('joe', 'password', domain)
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+
+        uri = urlparse.urljoin(base, "basic/file.txt")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+
+
+
+
+
 
     def testBasicAuthTwoDifferentCredentials(self):
         # Test Basic Authentication with multiple sets of credentials

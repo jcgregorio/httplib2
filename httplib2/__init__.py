@@ -616,6 +616,26 @@ class FileCache:
         if os.path.exists(cacheFullPath):
             os.remove(cacheFullPath)
 
+class Credentials:
+    def __init__(self):
+        self.credentials = []
+
+    def add(self, name, password, domain=""):
+        self.credentials.append((domain.lower(), name, password))
+
+    def clear(self):
+        self.credentials = []
+
+    def iter(self, domain):
+        for (cdomain, name, password) in self.credentials:
+            if cdomain == "" or domain == cdomain:
+                yield (name, password) 
+
+class KeyCerts(Credentials):
+    """Identical to Credentials except that
+    name/password are mapped to key/cert."""
+    pass
+
 class Http:
     """An HTTP client that handles all 
     methods, caching, ETags, compression,
@@ -631,8 +651,11 @@ class Http:
         else:
             self.cache = cache
 
-        # tuples of name, password
-        self.credentials = []
+        # Name/password
+        self.credentials = Credentials() 
+
+        # Key/cert
+        self.certificates = KeyCerts()
 
         # authorization objects
         self.authorizations = []
@@ -646,20 +669,25 @@ class Http:
            that can be applied to requests.
         """
         challenges = _parse_www_authenticate(response, 'www-authenticate')
-        for cred in self.credentials:
+        for cred in self.credentials.iter(host):
             for scheme in AUTH_SCHEME_ORDER:
                 if challenges.has_key(scheme):
                     yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content, self) 
 
-    def add_credentials(self, name, password):
+    def add_credentials(self, name, password, domain=""):
         """Add a name and password that will be used
         any time a request requires authentication."""
-        self.credentials.append((name, password))
+        self.credentials.add(name, password, domain)
+
+    def add_certificate(self, key, cert, domain):
+        """Add a key and cert that will be used
+        any time a request requires authentication."""
+        self.certificates.add(key, cert, domain)
 
     def clear_credentials(self):
         """Remove all the names and passwords
         that are used for authentication"""
-        self.credentials = []
+        self.credentials.clear()
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
@@ -784,12 +812,17 @@ a string that contains the response entity body.
 
         (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
 
-        if not self.connections.has_key(scheme+":"+authority):
-            connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
-            conn = self.connections[scheme+":"+authority] = connection_type(authority)
-            conn.set_debuglevel(debuglevel)
+        conn_key = scheme+":"+authority
+        if conn_key in self.connections:
+            conn = self.connections[conn_key]
         else:
-            conn = self.connections[scheme+":"+authority]
+            connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
+            certs = list(self.certificates.iter(authority))
+            if scheme == 'https' and certs: 
+                conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1])
+            else:
+                conn = self.connections[conn_key] = connection_type(authority)
+            conn.set_debuglevel(debuglevel)
 
         if method in ["GET", "HEAD"] and 'range' not in headers:
             headers['accept-encoding'] = 'compress, gzip'
