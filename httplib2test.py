@@ -111,11 +111,20 @@ class HttpTest(unittest.TestCase):
         self.http.clear_credentials()
 
     def testGetUnknownServer(self):
+        self.http.force_exception_to_status_code = False 
         try:
             self.http.request("http://fred.bitworking.org/")
             self.fail("An httplib2.ServerNotFoundError Exception must be thrown on an unresolvable server.")
         except httplib2.ServerNotFoundError:
             pass
+
+        # Now test with exceptions turned off
+        self.http.force_exception_to_status_code = True
+
+        (response, content) = self.http.request("http://fred.bitworking.org/")
+        self.assertEqual(response['content-type'], 'text/plain')
+        self.assertTrue(content.startswith("Unable to find"))
+        self.assertEqual(response.status, 400)
 
     def testGetIRI(self):
         if sys.version_info >= (2,3):
@@ -124,7 +133,6 @@ class HttpTest(unittest.TestCase):
             d = self.reflector(content)
             self.assertTrue(d.has_key('QUERY_STRING')) 
             self.assertTrue(d['QUERY_STRING'].find('%D0%82') > 0) 
-
     
     def testGetIsDefaultMethod(self):
         # Test that GET is the default method
@@ -260,6 +268,8 @@ class HttpTest(unittest.TestCase):
         # Test that we can set a lower redirection limit
         # and that we raise an exception when we exceed
         # that limit.
+        self.http.force_exception_to_status_code = False 
+
         uri = urlparse.urljoin(base, "302/twostep.asis")
         try:
             (response, content) = self.http.request(uri, "GET", redirections = 1)
@@ -269,9 +279,20 @@ class HttpTest(unittest.TestCase):
         except Exception, e:
             self.fail("Threw wrong kind of exception ")
 
+        # Re-run the test with out the exceptions
+        self.http.force_exception_to_status_code = True 
+
+        (response, content) = self.http.request(uri, "GET", redirections = 1)
+        self.assertEqual(response.status, 500)
+        self.assertTrue(response.reason.startswith("Redirected more"))
+        self.assertEqual("302", response['status'])
+        self.assertTrue(content.startswith("<html>"))
+        self.assertTrue(response.previous != None)
+
     def testGet302NoLocation(self):
         # Test that we throw an exception when we get
         # a 302 with no Location: header.
+        self.http.force_exception_to_status_code = False 
         uri = urlparse.urljoin(base, "302/no-location.asis")
         try:
             (response, content) = self.http.request(uri, "GET")
@@ -281,6 +302,15 @@ class HttpTest(unittest.TestCase):
         except Exception, e:
             self.fail("Threw wrong kind of exception ")
 
+        # Re-run the test with out the exceptions
+        self.http.force_exception_to_status_code = True 
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 500)
+        self.assertTrue(response.reason.startswith("Redirected but"))
+        self.assertEqual("302", response['status'])
+        self.assertTrue(content.startswith("This is content"))
+ 
     def testGet302ViaHttps(self):
         # Google always redirects to http://google.com
         (response, content) = self.http.request("https://google.com", "GET")
@@ -462,6 +492,7 @@ class HttpTest(unittest.TestCase):
 
     def testGetGZipFailure(self):
         # Test that we raise a good exception when the gzip fails
+        self.http.force_exception_to_status_code = False 
         uri = urlparse.urljoin(base, "gzip/failed-compression.asis")
         try:
             (response, content) = self.http.request(uri, "GET")
@@ -470,6 +501,27 @@ class HttpTest(unittest.TestCase):
             pass
         except Exception:
             self.fail("Threw wrong kind of exception")
+
+        # Re-run the test with out the exceptions
+        self.http.force_exception_to_status_code = True 
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 500)
+        self.assertTrue(response.reason.startswith("Content purported"))
+
+    def testTimeout(self):
+        uri = urlparse.urljoin(base, "timeout/timeout.cgi")
+        try:
+            import socket
+            socket.setdefaulttimeout(1) 
+        except:
+            # Don't run the test if we can't set the timeout
+            return 
+        (response, content) = self.http.request(uri)
+        self.assertEqual(response.status, 408)
+        self.assertTrue(response.reason.startswith("Request Timeout"))
+        self.assertTrue(content.startswith("Request Timeout"))
+
 
     def testGetDeflate(self):
         # Test that we support deflate compression
@@ -482,7 +534,8 @@ class HttpTest(unittest.TestCase):
 
     def testGetDeflateFailure(self):
         # Test that we raise a good exception when the deflate fails
-        uri = urlparse.urljoin(base, "deflate/deflated.asis")
+        self.http.force_exception_to_status_code = False 
+
         uri = urlparse.urljoin(base, "deflate/failed-compression.asis")
         try:
             (response, content) = self.http.request(uri, "GET")
@@ -491,6 +544,13 @@ class HttpTest(unittest.TestCase):
             pass
         except Exception:
             self.fail("Threw wrong kind of exception")
+
+        # Re-run the test with out the exceptions
+        self.http.force_exception_to_status_code = True 
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 500)
+        self.assertTrue(response.reason.startswith("Content purported"))
 
     def testGetDuplicateHeaders(self):
         # Test that duplicate headers get concatenated via ','

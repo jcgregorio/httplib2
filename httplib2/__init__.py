@@ -41,7 +41,7 @@ import random
 import sha
 import hmac
 from gettext import gettext as _
-from socket import gaierror
+import socket
 
 if sys.version_info >= (2,3):
     from iri2uri import iri2uri
@@ -77,11 +77,20 @@ if not hasattr(httplib.HTTPResponse, 'getheaders'):
 # All exceptions raised here derive from HttpLib2Error
 class HttpLib2Error(Exception): pass
 
-class RedirectMissingLocation(HttpLib2Error): pass
-class RedirectLimit(HttpLib2Error): pass
-class FailedToDecompressContent(HttpLib2Error): pass
-class UnimplementedDigestAuthOptionError(HttpLib2Error): pass
-class UnimplementedHmacDigestAuthOptionError(HttpLib2Error): pass
+# Some exceptions can be caught and optionally 
+# be turned back into responses. 
+class HttpLib2ErrorWithResponse(HttpLib2Error):
+    def __init__(self, desc, response, content):
+        self.response = response
+        self.content = content
+        HttpLib2Error.__init__(self, desc)
+
+class RedirectMissingLocation(HttpLib2ErrorWithResponse): pass
+class RedirectLimit(HttpLib2ErrorWithResponse): pass
+class FailedToDecompressContent(HttpLib2ErrorWithResponse): pass
+class UnimplementedDigestAuthOptionError(HttpLib2ErrorWithResponse): pass
+class UnimplementedHmacDigestAuthOptionError(HttpLib2ErrorWithResponse): pass
+
 class RelativeURIError(HttpLib2Error): pass
 class ServerNotFoundError(HttpLib2Error): pass
 
@@ -310,7 +319,7 @@ def _decompressContent(response, new_content):
             del response['content-encoding']
     except:
         content = ""
-        raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'))
+        raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'), response, content)
     return content
 
 def _updateCache(request_headers, response_headers, content, cache, cachekey):
@@ -664,6 +673,8 @@ class Http:
 
         self.ignore_etag = False
 
+        self.force_exception_to_status_code = True 
+
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
            that can be applied to requests.
@@ -695,9 +706,10 @@ class Http:
             try:
                 conn.request(method, request_uri, body, headers)
                 response = conn.getresponse()
-            except gaierror:
-                raise ServerNotFoundError("Unable to find the server at %s" % request_uri)
-            except:
+            except socket.gaierror:
+                conn.close()
+                raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
+            except Exception, e:
                 if i == 0:
                     conn.close()
                     conn.connect()
@@ -745,7 +757,7 @@ class Http:
                 # remembering first to strip the ETag header and decrement our 'depth'
                 if redirections:
                     if not response.has_key('location') and response.status != 300:
-                        raise RedirectMissingLocation( _("Redirected but the response is missing a Location: header."))
+                        raise RedirectMissingLocation( _("Redirected but the response is missing a Location: header."), response, content)
                     # Fix-up relative redirects (which violate an RFC 2616 MUST)
                     if response.has_key('location'):
                         location = response['location']
@@ -770,7 +782,7 @@ class Http:
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
                 else:
-                    raise RedirectLimit( _("Redirected more times than rediection_limit allows."))
+                    raise RedirectLimit( _("Redirected more times than rediection_limit allows."), response, content)
             elif response.status in [200, 203] and method == "GET":
                 # Don't cache 206's since we aren't going to handle byte range requests
                 if not response.has_key('content-location'):
@@ -800,120 +812,144 @@ The return value is a tuple of (response, content), the first
 being and instance of the 'Response' class, the second being 
 a string that contains the response entity body.
         """
-        if headers is None:
-            headers = {}
-        else:
-            headers = _normalize_headers(headers)
-
-        if not headers.has_key('user-agent'):
-            headers['user-agent'] = "Python-httplib2/%s" % __version__
-
-        uri = iri2uri(uri)
-
-        (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
-
-        conn_key = scheme+":"+authority
-        if conn_key in self.connections:
-            conn = self.connections[conn_key]
-        else:
-            connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
-            certs = list(self.certificates.iter(authority))
-            if scheme == 'https' and certs: 
-                conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1])
+        try:
+            if headers is None:
+                headers = {}
             else:
-                conn = self.connections[conn_key] = connection_type(authority)
-            conn.set_debuglevel(debuglevel)
+                headers = _normalize_headers(headers)
 
-        if method in ["GET", "HEAD"] and 'range' not in headers:
-            headers['accept-encoding'] = 'compress, gzip'
+            if not headers.has_key('user-agent'):
+                headers['user-agent'] = "Python-httplib2/%s" % __version__
 
-        info = email.Message.Message()
-        cached_value = None
-        if self.cache:
-            cachekey = defrag_uri
-            cached_value = self.cache.get(cachekey)
-            if cached_value:
-                try:
-                    info = email.message_from_string(cached_value)
-                    content = cached_value.split('\r\n\r\n', 1)[1]
-                except Exception, e:
-                    self.cache.delete(cachekey)
-                    cachekey = None
-                    cached_value = None
-        else:
-            cachekey = None
-                    
-        if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
-            # http://www.w3.org/1999/04/Editing/ 
-            headers['if-match'] = info['etag']
+            uri = iri2uri(uri)
 
-        if method not in ["GET", "HEAD"] and self.cache and cachekey:
-            # RFC 2616 Section 13.10
-            self.cache.delete(cachekey)
+            (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
 
-        if cached_value and method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
-            if info.has_key('-x-permanent-redirect-url'):
-                # Should cached permanent redirects be counted in our redirection count? For now, yes.
-                (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
-                response.previous = Response(info)
-                response.previous.fromcache = True
+            conn_key = scheme+":"+authority
+            if conn_key in self.connections:
+                conn = self.connections[conn_key]
             else:
-                # Determine our course of action:
-                #   Is the cached entry fresh or stale?
-                #   Has the client requested a non-cached response?
-                #   
-                # There seems to be three possible answers: 
-                # 1. [FRESH] Return the cache entry w/o doing a GET
-                # 2. [STALE] Do the GET (but add in cache validators if available)
-                # 3. [TRANSPARENT] Do a GET w/o any cache validators (Cache-Control: no-cache) on the request
-                entry_disposition = _entry_disposition(info, headers) 
-                
-                if entry_disposition == "FRESH":
-                    if not cached_value:
-                        info['status'] = '504'
-                        content = ""
-                    response = Response(info)
-                    if cached_value:
-                        response.fromcache = True
-                    return (response, content)
+                connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
+                certs = list(self.certificates.iter(authority))
+                if scheme == 'https' and certs: 
+                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1])
+                else:
+                    conn = self.connections[conn_key] = connection_type(authority)
+                conn.set_debuglevel(debuglevel)
 
-                if entry_disposition == "STALE":
-                    if info.has_key('etag') and not self.ignore_etag and not 'if-none-match' in headers:
-                        headers['if-none-match'] = info['etag']
-                    if info.has_key('last-modified') and not 'last-modified' in headers:
-                        headers['if-modified-since'] = info['last-modified']
-                elif entry_disposition == "TRANSPARENT":
-                    pass
+            if method in ["GET", "HEAD"] and 'range' not in headers:
+                headers['accept-encoding'] = 'compress, gzip'
 
-                (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
-
-            if response.status == 304 and method == "GET":
-                # Rewrite the cache entry with the new end-to-end headers
-                # Take all headers that are in response 
-                # and overwrite their values in info.
-                # unless they are hop-by-hop, or are listed in the connection header.
-
-                for key in _get_end2end_headers(response):
-                    info[key] = response[key]
-                merged_response = Response(info)
-                if hasattr(response, "_stale_digest"):
-                    merged_response._stale_digest = response._stale_digest
-                try:
-                    _updateCache(headers, merged_response, content, self.cache, cachekey)
-                except:
-                    print locals()
-                    raise 
-                response = merged_response
-                response.status = 200
-                response.fromcache = True 
-
-            elif response.status == 200:
-                content = new_content
+            info = email.Message.Message()
+            cached_value = None
+            if self.cache:
+                cachekey = defrag_uri
+                cached_value = self.cache.get(cachekey)
+                if cached_value:
+                    try:
+                        info = email.message_from_string(cached_value)
+                        content = cached_value.split('\r\n\r\n', 1)[1]
+                    except Exception, e:
+                        self.cache.delete(cachekey)
+                        cachekey = None
+                        cached_value = None
             else:
+                cachekey = None
+                        
+            if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
+                # http://www.w3.org/1999/04/Editing/ 
+                headers['if-match'] = info['etag']
+
+            if method not in ["GET", "HEAD"] and self.cache and cachekey:
+                # RFC 2616 Section 13.10
                 self.cache.delete(cachekey)
-                content = new_content 
-        else: 
-            (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
+
+            if cached_value and method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
+                if info.has_key('-x-permanent-redirect-url'):
+                    # Should cached permanent redirects be counted in our redirection count? For now, yes.
+                    (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
+                    response.previous = Response(info)
+                    response.previous.fromcache = True
+                else:
+                    # Determine our course of action:
+                    #   Is the cached entry fresh or stale?
+                    #   Has the client requested a non-cached response?
+                    #   
+                    # There seems to be three possible answers: 
+                    # 1. [FRESH] Return the cache entry w/o doing a GET
+                    # 2. [STALE] Do the GET (but add in cache validators if available)
+                    # 3. [TRANSPARENT] Do a GET w/o any cache validators (Cache-Control: no-cache) on the request
+                    entry_disposition = _entry_disposition(info, headers) 
+                    
+                    if entry_disposition == "FRESH":
+                        if not cached_value:
+                            info['status'] = '504'
+                            content = ""
+                        response = Response(info)
+                        if cached_value:
+                            response.fromcache = True
+                        return (response, content)
+
+                    if entry_disposition == "STALE":
+                        if info.has_key('etag') and not self.ignore_etag and not 'if-none-match' in headers:
+                            headers['if-none-match'] = info['etag']
+                        if info.has_key('last-modified') and not 'last-modified' in headers:
+                            headers['if-modified-since'] = info['last-modified']
+                    elif entry_disposition == "TRANSPARENT":
+                        pass
+
+                    (response, new_content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
+
+                if response.status == 304 and method == "GET":
+                    # Rewrite the cache entry with the new end-to-end headers
+                    # Take all headers that are in response 
+                    # and overwrite their values in info.
+                    # unless they are hop-by-hop, or are listed in the connection header.
+
+                    for key in _get_end2end_headers(response):
+                        info[key] = response[key]
+                    merged_response = Response(info)
+                    if hasattr(response, "_stale_digest"):
+                        merged_response._stale_digest = response._stale_digest
+                    _updateCache(headers, merged_response, content, self.cache, cachekey)
+                    response = merged_response
+                    response.status = 200
+                    response.fromcache = True 
+
+                elif response.status == 200:
+                    content = new_content
+                else:
+                    self.cache.delete(cachekey)
+                    content = new_content 
+            else: 
+                (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
+        except Exception, e:
+            if self.force_exception_to_status_code:
+                if isinstance(e, HttpLib2ErrorWithResponse):
+                    response = e.response
+                    content = e.content
+                    response.status = 500
+                    response.reason = str(e) 
+                elif isinstance(e, socket.timeout):
+                    content = "Request Timeout"
+                    response = Response( {
+                            "content-type": "text/plain",
+                            "status": "408",
+                            "content-length": len(content)
+                            })
+                    response.reason = "Request Timeout"
+                else:
+                    content = str(e) 
+                    response = Response( {
+                            "content-type": "text/plain",
+                            "status": "400",
+                            "content-length": len(content)
+                            })
+                    response.reason = "Bad Request" 
+            else:
+                raise
+
+ 
         return (response, content)
 
  
@@ -949,6 +985,11 @@ class Response(dict):
             for key, value in info.items(): 
                 self[key] = value 
             self.status = int(self['status'])
+        else:
+            for key, value in info.iteritems(): 
+                self[key] = value 
+            self.status = int(self.get('status', self.status))
+
 
     def __getattr__(self, name):
         if name == 'dict':
