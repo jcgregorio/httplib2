@@ -109,7 +109,10 @@ The amount of debugging information to print. The default is 0.
 </dd></dl>
 
 <P>
-The <tt class="module">httplib2</tt> module may raise the following Exceptions:
+The <tt class="module">httplib2</tt> module may raise the following Exceptions. Note that 
+there is an option that turns exceptions into 
+normal responses with an HTTP status code indicating
+an error occured. See <tt class="member">Http.force_exception_to_status_code</tt>
 
 <P>
 <dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-3' xml:id='l2h-3' class="exception">HttpLib2Error</tt></b></dt>
@@ -131,21 +134,33 @@ The maximum number of redirections was reached without coming to a final URI.
 </dd></dl>
 
 <P>
-<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-6' xml:id='l2h-6' class="exception">FailedToDecompressContent</tt></b></dt>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-6' xml:id='l2h-6' class="exception">ServerNotFoundError</tt></b></dt>
+<dd>
+Unable to resolve the host name given.
+</dd></dl>
+
+<P>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-7' xml:id='l2h-7' class="exception">RelativeURIError</tt></b></dt>
+<dd>
+A relative, as opposed to an absolute URI, was passed into request().
+</dd></dl>
+
+<P>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-8' xml:id='l2h-8' class="exception">FailedToDecompressContent</tt></b></dt>
 <dd>
 The headers claimed that the content of the response was compressed but the
 decompression algorithm applied to the content failed.
 </dd></dl>
 
 <P>
-<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-7' xml:id='l2h-7' class="exception">UnimplementedDigestAuthOptionError</tt></b></dt>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-9' xml:id='l2h-9' class="exception">UnimplementedDigestAuthOptionError</tt></b></dt>
 <dd>
 The server requested a type of Digest authentication that we
 are unfamiliar with.
 </dd></dl>
 
 <P>
-<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-8' xml:id='l2h-8' class="exception">UnimplementedHmacDigestAuthOptionError</tt></b></dt>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-10' xml:id='l2h-10' class="exception">UnimplementedHmacDigestAuthOptionError</tt></b></dt>
 <dd>
 The server requested a type of HMACDigest authentication that we
 are unfamiliar with.
@@ -153,7 +168,7 @@ are unfamiliar with.
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-9' xml:id='l2h-9' class="class">Http</tt></b>(</nobr></td>
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-11' xml:id='l2h-11' class="class">Http</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var>cache=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 The class that represents a client HTTP interface.
@@ -164,7 +179,7 @@ implements the required caching interface.
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-10' xml:id='l2h-10' class="class">Response</tt></b>(</nobr></td>
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-12' xml:id='l2h-12' class="class">Response</tt></b>(</nobr></td>
   <td><var>info</var>)</td></tr></table></dt>
 <dd>
 Response is a subclass of <tt class="class">dict</tt> and instances of this 
@@ -175,7 +190,7 @@ an <tt class="class">rfc822.Message</tt> or an <tt class="class">httplib.HTTPRes
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-11' xml:id='l2h-11' class="class">FileCache</tt></b>(</nobr></td>
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-13' xml:id='l2h-13' class="class">FileCache</tt></b>(</nobr></td>
   <td><var>dir_name, </var><big>[</big><var>safe=safename</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 FileCache implements a Cache as a directory of files.
@@ -237,7 +252,7 @@ into the constructor of <tt class="class">Http</tt>.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.2, documentation updated on July 2, 2006.</span>
+<span class="release-info">Release 0.3, documentation updated on Mar 8, 2007.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

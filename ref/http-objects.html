@@ -59,7 +59,7 @@ Http objects have the following methods:
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-12' xml:id='l2h-12' class="method">request</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-14' xml:id='l2h-14' class="method">request</tt></b>(</nobr></td>
   <td><var>uri, </var><big>[</big><var>method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Performs a single HTTP request.
@@ -87,7 +87,7 @@ The return value is a tuple of (response, content), the first being and instance
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-13' xml:id='l2h-13' class="method">add_credentials</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-15' xml:id='l2h-15' class="method">add_credentials</tt></b>(</nobr></td>
   <td><var>name, password</var>)</td></tr></table></dt>
 <dd>
 Adds a name and password that will be used when a request 
@@ -96,14 +96,14 @@ requires authentication.
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-14' xml:id='l2h-14' class="method">clear_credentials</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-16' xml:id='l2h-16' class="method">clear_credentials</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 Remove all the names and passwords used for authentication.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-15' xml:id='l2h-15' class="member">follow_all_redirects</tt></b></dt>
+<dl><dt><b><tt id='l2h-17' xml:id='l2h-17' class="member">follow_all_redirects</tt></b></dt>
 <dd>
 If <code>False</code>, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a <code>GET</code> or <code>HEAD</code> on the
@@ -111,7 +111,18 @@ URI to which it is being redirected. If <code>True</code> then all redirects are
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-16' xml:id='l2h-16' class="member">ignore_etag</tt></b></dt>
+<dl><dt><b><tt id='l2h-18' xml:id='l2h-18' class="member">force_exception_to_status_code</tt></b></dt>
+<dd>
+If <code>True</code>, which is the default, then no <tt class="module">httplib2</tt> exceptions will be thrown. Instead,
+those error conditions will be turned into <tt class="class">Response</tt> objects
+that will be returned normally.
+
+<P>
+If <code>False</code>, then exceptions will be thrown.
+</dl>
+
+<P>
+<dl><dt><b><tt id='l2h-19' xml:id='l2h-19' class="member">ignore_etag</tt></b></dt>
 <dd>
 Defaults to <code>False</code>. If True, then any etags present in the cached response
 are ignored when processing the current request, i.e. httplib2 does *not* use
@@ -154,7 +165,7 @@ is mainly to deal with broken servers which supply an etag, but change it capric
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.2, documentation updated on July 2, 2006.</span>
+<span class="release-info">Release 0.3, documentation updated on Mar 8, 2007.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

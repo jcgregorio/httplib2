@@ -101,7 +101,10 @@ The amount of debugging information to print. The default is 0.
 % the source code should be documented using this environment, but
 % constructor parameters must be omitted.
 
-The \module{httplib2} module may raise the following Exceptions:
+The \module{httplib2} module may raise the following Exceptions. Note that 
+there is an option that turns exceptions into 
+normal responses with an HTTP status code indicating
+an error occured. See \member{Http.force_exception_to_status_code}
 
 \begin{excdesc}{HttpLib2Error}
 The Base Exception for all exceptions raised by httplib2.
@@ -112,17 +115,23 @@ A 3xx redirect response code was provided but no Location: header
 was provided to point to the new location.
 \end{excdesc}
 
-
 \begin{excdesc}{RedirectLimit}
 The maximum number of redirections was reached without coming to a final URI.
 \end{excdesc}
 
 
+\begin{excdesc}{ServerNotFoundError}
+Unable to resolve the host name given.
+\end{excdesc}
+
+\begin{excdesc}{RelativeURIError}
+A relative, as opposed to an absolute URI, was passed into request().
+\end{excdesc}
+
 \begin{excdesc}{FailedToDecompressContent}
 The headers claimed that the content of the response was compressed but the
 decompression algorithm applied to the content failed.
 \end{excdesc}
-
 
 \begin{excdesc}{UnimplementedDigestAuthOptionError}
 The server requested a type of Digest authentication that we
@@ -220,6 +229,14 @@ safe means that the client is only doing a \code{GET} or \code{HEAD} on the
 URI to which it is being redirected. If \code{True} then all redirects are followed.
 \end{memberdesc}
 
+\begin{memberdesc}[Http]{force_exception_to_status_code}
+If \code{True}, which is the default, then no \module{httplib2} exceptions will be thrown. Instead,
+those error conditions will be turned into \class{Response} objects
+that will be returned normally.
+
+If \code{False}, then exceptions will be thrown.
+\end{memberdesc}
+
 \begin{memberdesc}[Http]{ignore_etag}
 Defaults to \code{False}. If True, then any etags present in the cached response
 are ignored when processing the current request, i.e. httplib2 does *not* use
@@ -294,7 +311,12 @@ contains the URI that was ultimately requested. This is useful if
 redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,
 including \code{previous} responses so you can determine the entire
-chain of redirects.
+chain of redirects. If \member{Http.force_exception_to_status_code} is \code{True}
+and the number of redirects has exceeded the number of allowed number 
+of redirects then the \class{Response} object will report the error
+in the status code, but the complete chain of previous responses will
+still be in tact.
+
 
 % ==== 4. ====
 % Now is probably a good time for a complete example.  (Alternatively,
@@ -351,4 +373,19 @@ resp, content = h.request(uri, "POST", body=body, headers=headers)
 \end{verbatim}
 % Note that there is no trailing ">>> " prompt shown.
 
+Here is an example of providing data to an HTML form processor.
+In this case we presume this is a POST form. We need to take our 
+data and format it as "application/x-www-form-urlencoded" data and use that as a 
+body for a POST request.
 
+\begin{verbatim}
+>>> import httplib2
+>>> import urllib
+>>> data = {'name': 'fred', 'address': '123 shady lane'}
+>>> body = urllib.urlencode(data)
+>>> body
+'name=fred&address=123+shady+lane'
+>>> h = httplib2.Http()
+>>> resp, content = h.request("http://example.com", method="POST", body=body)
+\end{verbatim}
+% Note that there is no trailing ">>> " prompt shown.

@@ -106,6 +106,22 @@ resp, content = h.request(uri, "POST", body=body, headers=headers)
 </pre></div>
 
 <P>
+Here is an example of providing data to an HTML form processor.
+In this case we presume this is a POST form. We need to take our 
+data and format it as "application/x-www-form-urlencoded" data and use that as a 
+body for a POST request.
+
+<P>
+<div class="verbatim"><pre>
+&gt;&gt;&gt; import httplib2
+&gt;&gt;&gt; import urllib
+&gt;&gt;&gt; data = {'name': 'fred', 'address': '123 shady lane'}
+&gt;&gt;&gt; body = urllib.urlencode(data)
+&gt;&gt;&gt; body
+'name=fred&amp;address=123+shady+lane'
+&gt;&gt;&gt; h = httplib2.Http()
+&gt;&gt;&gt; resp, content = h.request("http://example.com", method="POST", body=body)
+</pre></div>
 
 <P>
 <IMG
@@ -150,7 +166,7 @@ resp, content = h.request(uri, "POST", body=body, headers=headers)
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.2, documentation updated on July 2, 2006.</span>
+<span class="release-info">Release 0.3, documentation updated on Mar 8, 2007.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

@@ -61,32 +61,32 @@ to header values. In addition to the dict methods
 a Response object also has:
 
 <P>
-<dl><dt><b><tt id='l2h-20' xml:id='l2h-20' class="member">fromcache</tt></b></dt>
+<dl><dt><b><tt id='l2h-23' xml:id='l2h-23' class="member">fromcache</tt></b></dt>
 <dd>
 If <code>true</code> the the response was returned from the cache.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-21' xml:id='l2h-21' class="member">version</tt></b></dt>
+<dl><dt><b><tt id='l2h-24' xml:id='l2h-24' class="member">version</tt></b></dt>
 <dd>
 The version of HTTP that the server supports. A value
 of 11 means '1.1'.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-22' xml:id='l2h-22' class="member">status</tt></b></dt>
+<dl><dt><b><tt id='l2h-25' xml:id='l2h-25' class="member">status</tt></b></dt>
 <dd>
 The numerical HTTP status code returned in the response.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-23' xml:id='l2h-23' class="member">reason</tt></b></dt>
+<dl><dt><b><tt id='l2h-26' xml:id='l2h-26' class="member">reason</tt></b></dt>
 <dd>
 The human readable component of the HTTP response status code.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-24' xml:id='l2h-24' class="member">previous</tt></b></dt>
+<dl><dt><b><tt id='l2h-27' xml:id='l2h-27' class="member">previous</tt></b></dt>
 <dd>
 If redirects are followed then the <tt class="class">Response</tt> object returned
 is just for the very last HTTP request and <var>previous</var> points to
@@ -101,7 +101,11 @@ contains the URI that was ultimately requested. This is useful if
 redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,
 including <code>previous</code> responses so you can determine the entire
-chain of redirects.
+chain of redirects. If <tt class="member">Http.force_exception_to_status_code</tt> is <code>True</code>
+and the number of redirects has exceeded the number of allowed number 
+of redirects then the <tt class="class">Response</tt> object will report the error
+in the status code, but the complete chain of previous responses will
+still be in tact.
 
 <P>
 
@@ -138,7 +142,7 @@ chain of redirects.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.2, documentation updated on July 2, 2006.</span>
+<span class="release-info">Release 0.3, documentation updated on Mar 8, 2007.</span>
 </DIV>
 <!--End of Navigation Panel-->
 

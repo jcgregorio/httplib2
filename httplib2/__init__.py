@@ -791,6 +791,12 @@ class Http:
 
         return (response, content)
 
+
+# Need to catch and rebrand some exceptions
+# Then need to optionally turn all exceptions into status codes
+# including all socket.* and httplib.* exceptions.
+
+
     def request(self, uri, method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS):
         """ Performs a single HTTP request.
 The 'uri' is the URI of the HTTP resource and can begin 
