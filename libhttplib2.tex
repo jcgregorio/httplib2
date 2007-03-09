@@ -248,8 +248,8 @@ If \code{False}, then exceptions will be thrown.
 \end{memberdesc}
 
 \begin{memberdesc}[Http]{ignore_etag}
-Defaults to \code{False}. If True, then any etags present in the cached response
-are ignored when processing the current request, i.e. httplib2 does *not* use
+Defaults to \code{False}. If \code{True}, then any etags present in the cached response
+are ignored when processing the current request, i.e. httplib2 does \strong{not} use
 'if-match' for PUT or 'if-none-match' when GET or HEAD requests are made. This
 is mainly to deal with broken servers which supply an etag, but change it capriciously.
 \end{memberdesc}

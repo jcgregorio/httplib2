@@ -88,22 +88,35 @@ The return value is a tuple of (response, content), the first being and instance
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-15' xml:id='l2h-15' class="method">add_credentials</tt></b>(</nobr></td>
-  <td><var>name, password</var>)</td></tr></table></dt>
+  <td><var>name, password, </var><big>[</big><var>domain=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Adds a name and password that will be used when a request 
-requires authentication.
+requires authentication. Supplying the optional <var>domain</var> name will
+restrict these credentials to only be sent to the specified
+domain. If <var>domain</var> is not specified then the given credentials will
+be used to try to satisfy every HTTP 401 challenge.
 </dl>
 
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-16' xml:id='l2h-16' class="method">clear_credentials</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-16' xml:id='l2h-16' class="method">add_certificate</tt></b>(</nobr></td>
+  <td><var>key, cert, domain</var>)</td></tr></table></dt>
+<dd>
+Add a <var>key</var> and <var>cert</var> that will be used for an SSL connection
+to the specified domain. <var>keyfile</var> is the name of a PEM formatted 
+file that contains your private key. <var>certfile</var> is a PEM formatted certificate chain file. 
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-17' xml:id='l2h-17' class="method">clear_credentials</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 Remove all the names and passwords used for authentication.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-17' xml:id='l2h-17' class="member">follow_all_redirects</tt></b></dt>
+<dl><dt><b><tt id='l2h-18' xml:id='l2h-18' class="member">follow_all_redirects</tt></b></dt>
 <dd>
 If <code>False</code>, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a <code>GET</code> or <code>HEAD</code> on the
@@ -111,7 +124,7 @@ URI to which it is being redirected. If <code>True</code> then all redirects are
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-18' xml:id='l2h-18' class="member">force_exception_to_status_code</tt></b></dt>
+<dl><dt><b><tt id='l2h-19' xml:id='l2h-19' class="member">force_exception_to_status_code</tt></b></dt>
 <dd>
 If <code>True</code>, which is the default, then no <tt class="module">httplib2</tt> exceptions will be thrown. Instead,
 those error conditions will be turned into <tt class="class">Response</tt> objects
@@ -122,10 +135,10 @@ If <code>False</code>, then exceptions will be thrown.
 </dl>
 
 <P>
-<dl><dt><b><tt id='l2h-19' xml:id='l2h-19' class="member">ignore_etag</tt></b></dt>
+<dl><dt><b><tt id='l2h-20' xml:id='l2h-20' class="member">ignore_etag</tt></b></dt>
 <dd>
-Defaults to <code>False</code>. If True, then any etags present in the cached response
-are ignored when processing the current request, i.e. httplib2 does *not* use
+Defaults to <code>False</code>. If <code>True</code>, then any etags present in the cached response
+are ignored when processing the current request, i.e. httplib2 does <strong>not</strong> use
 'if-match' for PUT or 'if-none-match' when GET or HEAD requests are made. This
 is mainly to deal with broken servers which supply an etag, but change it capriciously.
 </dl>
