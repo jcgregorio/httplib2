@@ -510,6 +510,7 @@ class HttpTest(unittest.TestCase):
         self.assertTrue(response.reason.startswith("Content purported"))
 
     def testTimeout(self):
+        self.http.force_exception_to_status_code = True 
         uri = urlparse.urljoin(base, "timeout/timeout.cgi")
         try:
             import socket
@@ -518,6 +519,16 @@ class HttpTest(unittest.TestCase):
             # Don't run the test if we can't set the timeout
             return 
         (response, content) = self.http.request(uri)
+        self.assertEqual(response.status, 408)
+        self.assertTrue(response.reason.startswith("Request Timeout"))
+        self.assertTrue(content.startswith("Request Timeout"))
+
+    def testIndividualTimeout(self):
+        self.http.force_exception_to_status_code = True 
+        uri = urlparse.urljoin(base, "timeout/timeout.cgi")
+        http = httplib2.Http(timeout=1)
+
+        (response, content) = http.request(uri)
         self.assertEqual(response.status, 408)
         self.assertTrue(response.reason.startswith("Request Timeout"))
         self.assertTrue(content.startswith("Request Timeout"))

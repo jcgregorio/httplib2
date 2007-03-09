@@ -645,12 +645,68 @@ class KeyCerts(Credentials):
     name/password are mapped to key/cert."""
     pass
 
+
+class HTTPConnectionWithTimeout(httplib.HTTPConnection):
+    """HTTPConnection subclass that supports timeouts"""
+
+    def __init__(self, host, port=None, strict=None, timeout=None):
+        httplib.HTTPConnection.__init__(self, host, port, strict)
+        self.timeout = timeout
+
+    def connect(self):
+        """Connect to the host and port specified in __init__."""
+        # Mostly verbatim from httplib.py.
+        msg = "getaddrinfo returns an empty list"
+        for res in socket.getaddrinfo(self.host, self.port, 0,
+                socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            try:
+                self.sock = socket.socket(af, socktype, proto)
+                # Different from httplib: support timeouts.
+                if self.timeout is not None:
+                    self.sock.settimeout(self.timeout)
+                    # End of difference from httplib.
+                if self.debuglevel > 0:
+                    print "connect: (%s, %s)" % (self.host, self.port)
+                self.sock.connect(sa)
+            except socket.error, msg:
+                if self.debuglevel > 0:
+                    print 'connect fail:', (self.host, self.port)
+                if self.sock:
+                    self.sock.close()
+                self.sock = None
+                continue
+            break
+        if not self.sock:
+            raise socket.error, msg
+
+class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
+    "This class allows communication via SSL."
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None):
+        self.timeout = timeout
+        httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file,
+                cert_file=cert_file, strict=strict)
+
+    def connect(self):
+        "Connect to a host on a given (SSL) port."
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if self.timeout is not None:
+            sock.settimeout(self.timeout)
+        sock.connect((self.host, self.port))
+        ssl = socket.ssl(sock, self.key_file, self.cert_file)
+        self.sock = httplib.FakeSocket(sock, ssl)
+
+
+
 class Http:
     """An HTTP client that handles all 
     methods, caching, ETags, compression,
     HTTPS, Basic, Digest, WSSE, etc.
     """
-    def __init__(self, cache=None):
+    def __init__(self, cache=None, timeout=None):
         # Map domain name to an httplib connection
         self.connections = {}
         # The location of the cache, for now a directory
@@ -674,6 +730,8 @@ class Http:
         self.ignore_etag = False
 
         self.force_exception_to_status_code = True 
+
+        self.timeout = timeout
 
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
@@ -835,12 +893,12 @@ a string that contains the response entity body.
             if conn_key in self.connections:
                 conn = self.connections[conn_key]
             else:
-                connection_type = (scheme == 'https') and httplib.HTTPSConnection or httplib.HTTPConnection
+                connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
                 certs = list(self.certificates.iter(authority))
                 if scheme == 'https' and certs: 
-                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1])
+                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1], timeout=self.timeout)
                 else:
-                    conn = self.connections[conn_key] = connection_type(authority)
+                    conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout)
                 conn.set_debuglevel(debuglevel)
 
             if method in ["GET", "HEAD"] and 'range' not in headers:
