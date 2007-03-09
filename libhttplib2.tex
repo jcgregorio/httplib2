@@ -215,9 +215,18 @@ The return value is a tuple of (response, content), the first being and instance
 \class{Response} class, the second being a string that contains the response entity body.
 \end{methoddesc}
 
-\begin{methoddesc}[Http]{add_credentials}{name, password}
+\begin{methoddesc}[Http]{add_credentials}{name, password, \optional{domain=None}}
 Adds a name and password that will be used when a request 
-requires authentication.
+requires authentication. Supplying the optional \var{domain} name will
+restrict these credentials to only be sent to the specified
+domain. If \var{domain} is not specified then the given credentials will
+be used to try to satisfy every HTTP 401 challenge.
+\end{methoddesc}
+
+\begin{methoddesc}[Http]{add_certificate}{key, cert, domain}
+Add a \var{key} and \var{cert} that will be used for an SSL connection
+to the specified domain. \var{keyfile} is the name of a PEM formatted 
+file that contains your private key. \var{certfile} is a PEM formatted certificate chain file. 
 \end{methoddesc}
 
 \begin{methoddesc}[Http]{clear_credentials}{}
