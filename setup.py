@@ -1,5 +1,5 @@
 from distutils.core import setup
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 setup(name='httplib2',
         version=VERSION, 
         author='Joe Gregorio',
@@ -54,7 +54,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
         """,
         packages=['httplib2'],
         classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
