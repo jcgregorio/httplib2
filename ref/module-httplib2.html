@@ -169,12 +169,13 @@ are unfamiliar with.
 <P>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-11' xml:id='l2h-11' class="class">Http</tt></b>(</nobr></td>
-  <td><var></var><big>[</big><var>cache=None</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><var></var><big>[</big><var>cache=None</var><big>]</big><var>, </var><big>[</big><var>timeout=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 The class that represents a client HTTP interface.
 The <var>cache</var> parameter is either the name of a directory
 to be used as a flat file cache, or it must an object that 
 implements the required caching interface.
+The <var>timeout</var> parameter is the socket level timeout.
 </dl>
 
 <P>

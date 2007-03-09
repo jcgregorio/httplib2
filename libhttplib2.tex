@@ -157,11 +157,12 @@ are unfamiliar with.
 %  memberdesc	- data members, like datadesc, but with an optional
 %		  type name like methoddesc.
 
-\begin{classdesc}{Http}{\optional{cache=None}}
+\begin{classdesc}{Http}{\optional{cache=None}, \optional{timeout=None}}
 The class that represents a client HTTP interface.
 The \var{cache} parameter is either the name of a directory
 to be used as a flat file cache, or it must an object that 
 implements the required caching interface.
+The \var{timeout} parameter is the socket level timeout.
 \end{classdesc}
 
 \begin{classdesc}{Response}{info}
