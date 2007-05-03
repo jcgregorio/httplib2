@@ -239,13 +239,16 @@ safe means that the client is only doing a \code{GET} or \code{HEAD} on the
 URI to which it is being redirected. If \code{False} then no redirects are followed.
 Note that a False 'follow_redirects' takes precedence over a True 'follow_all_redirects'.
 Another way of saying that is for 'follow_all_redirects' to have any affect, 'follow_redirects'
-must by True.
+must be True.
 \end{memberdesc}
 
 \begin{memberdesc}[Http]{follow_all_redirects}
 If \code{False}, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a \code{GET} or \code{HEAD} on the
 URI to which it is being redirected. If \code{True} then all redirects are followed.
+Note that a False 'follow_redirects' takes precedence over a True 'follow_all_redirects'.
+Another way of saying that is for 'follow_all_redirects' to have any affect, 'follow_redirects'
+must be True.
 \end{memberdesc}
 
 \begin{memberdesc}[Http]{force_exception_to_status_code}

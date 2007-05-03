@@ -124,7 +124,7 @@ safe means that the client is only doing a <code>GET</code> or <code>HEAD</code>
 URI to which it is being redirected. If <code>False</code> then no redirects are followed.
 Note that a False 'follow_redirects' takes precedence over a True 'follow_all_redirects'.
 Another way of saying that is for 'follow_all_redirects' to have any affect, 'follow_redirects'
-must by True.
+must be True.
 </dl>
 
 <p>
@@ -133,6 +133,9 @@ must by True.
 If <code>False</code>, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a <code>GET</code> or <code>HEAD</code> on the
 URI to which it is being redirected. If <code>True</code> then all redirects are followed.
+Note that a False 'follow_redirects' takes precedence over a True 'follow_all_redirects'.
+Another way of saying that is for 'follow_all_redirects' to have any affect, 'follow_redirects'
+must be True.
 </dl>
 
 <p>
