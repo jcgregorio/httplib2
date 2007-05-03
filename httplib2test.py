@@ -204,6 +204,13 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.previous.status, 300)
         self.assertEqual(response.previous.fromcache, False)
 
+    def testGet300WithLocationNoRedirect(self):
+        # Test the we automatically follow 300 redirects if a Location: header is provided
+        self.http.follow_redirects = False
+        uri = urlparse.urljoin(base, "300/with-location-header.asis")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 300)
+
     def testGet300WithoutLocation(self):
         # Not giving a Location: header in a 300 response is acceptable
         # In which case we just return the 300 response
@@ -232,6 +239,17 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 301)
         self.assertEqual(response.previous.fromcache, True)
+
+
+    def testGet301NoRedirect(self):
+        # Test that we automatically follow 301 redirects
+        # and that we cache the 301 response
+        self.http.follow_redirects = False
+        uri = urlparse.urljoin(base, "301/onestep.asis")
+        destination = urlparse.urljoin(base, "302/final-destination.txt")
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 301)
+
 
     def testGet302(self):
         # Test that we automatically follow 302 redirects
@@ -321,7 +339,6 @@ class HttpTest(unittest.TestCase):
         # Test that we can handle HTTPS
         (response, content) = self.http.request("https://google.com/adsense/", "GET")
         self.assertEqual(200, response.status)
-        self.assertEqual(None, response.previous)
 
     def testGetViaHttpsSpecViolationOnLocation(self):
         # Test that we follow redirects through HTTPS
@@ -334,19 +351,11 @@ class HttpTest(unittest.TestCase):
 
 
     def testGetViaHttpsKeyCert(self):
-        """At this point I can only test
-          that the key and cert files are passed in 
-          correctly to httplib. It would be nice to have 
-          a real https endpoint to test against.
-        """
-        http = httplib2.Http()
-        try:
-            (response, content) = http.request("https://example.org", "GET")
-        except:
-            pass
-        self.assertEqual(http.connections["https:example.org"].key_file, None)
-        self.assertEqual(http.connections["https:example.org"].cert_file, None)
-
+        #  At this point I can only test
+        #  that the key and cert files are passed in 
+        #  correctly to httplib. It would be nice to have 
+        #  a real https endpoint to test against.
+        http = httplib2.Http(timeout=2)
 
         http.add_certificate("akeyfile", "acertfile", "bitworking.org")
         try:
@@ -355,6 +364,15 @@ class HttpTest(unittest.TestCase):
             pass
         self.assertEqual(http.connections["https:bitworking.org"].key_file, "akeyfile")
         self.assertEqual(http.connections["https:bitworking.org"].cert_file, "acertfile")
+
+        try:
+            (response, content) = http.request("https://notthere.bitworking.org", "GET")
+        except:
+            pass
+        self.assertEqual(http.connections["https:notthere.bitworking.org"].key_file, None)
+        self.assertEqual(http.connections["https:notthere.bitworking.org"].cert_file, None)
+
+
 
 
     def testGet303(self):
@@ -365,6 +383,14 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(content, "This is the final destination.\n")
         self.assertEqual(response.previous.status, 303)
+
+    def testGet303NoRedirect(self):
+        # Do a follow-up GET on a Location: header
+        # returned from a POST that gave a 303.
+        self.http.follow_redirects = False
+        uri = urlparse.urljoin(base, "303/303.cgi")
+        (response, content) = self.http.request(uri, "POST", " ")
+        self.assertEqual(response.status, 303)
 
     def test303ForDifferentMethods(self):
         # Test that all methods can be used

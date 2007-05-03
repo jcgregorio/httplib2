@@ -233,6 +233,15 @@ file that contains your private key. \var{certfile} is a PEM formatted certifica
 Remove all the names and passwords used for authentication.
 \end{methoddesc}
 
+\begin{memberdesc}[Http]{follow_redirects}
+If \code{True}, which is the default, safe redirects are followed, where
+safe means that the client is only doing a \code{GET} or \code{HEAD} on the
+URI to which it is being redirected. If \code{False} then no redirects are followed.
+Note that a False 'follow_redirects' takes precedence over a True 'follow_all_redirects'.
+Another way of saying that is for 'follow_all_redirects' to have any affect, 'follow_redirects'
+must by True.
+\end{memberdesc}
+
 \begin{memberdesc}[Http]{follow_all_redirects}
 If \code{False}, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a \code{GET} or \code{HEAD} on the

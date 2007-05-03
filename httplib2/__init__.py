@@ -7,6 +7,10 @@ to conserve bandwidth.
 
 Requires Python 2.3 or later
 
+Supports:
+    - HTTPS
+    - Basic
+    - Digest
 """
 
 __author__ = "Joe Gregorio (joe@bitworking.org)"
@@ -702,9 +706,17 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
 
 class Http:
-    """An HTTP client that handles all 
-    methods, caching, ETags, compression,
-    HTTPS, Basic, Digest, WSSE, etc.
+    """An HTTP client that handles:
+- all methods
+- caching
+- ETags
+- compression,
+- HTTPS
+- Basic
+- Digest
+- WSSE
+
+and more.
     """
     def __init__(self, cache=None, timeout=None):
         # Map domain name to an httplib connection
@@ -725,6 +737,11 @@ class Http:
         # authorization objects
         self.authorizations = []
 
+        # If set to False then no redirects are followed, even safe ones.
+        self.follow_redirects = True
+
+        # If 'follow_redirects' is True, and this is set to True then 
+        # all redirecs are followed, including unsafe ones.
         self.follow_all_redirects = False
 
         self.ignore_etag = False
@@ -809,8 +826,8 @@ class Http:
                     authorization.response(response, body)
                     break
 
-        if (self.follow_all_redirects or method in ["GET", "HEAD"]) or response.status == 303:
-            if response.status in [300, 301, 302, 303, 307]:
+        if ((self.follow_all_redirects or method in ["GET", "HEAD"]) or response.status == 303):
+            if self.follow_redirects and response.status in [300, 301, 302, 303, 307]:
                 # Pick out the location header and basically start from the beginning
                 # remembering first to strip the ETag header and decrement our 'depth'
                 if redirections:
