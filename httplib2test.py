@@ -972,6 +972,16 @@ class HttpPrivateTest(unittest.TestCase):
         time.sleep(3)
         self.assertEqual("STALE", httplib2._entry_disposition(response_headers, request_headers))
 
+    def testExpiresZero(self):
+        now = time.time()
+        response_headers = {
+            'date': time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(now)),
+            'expires': "0",
+        }
+        request_headers = {
+        }
+        self.assertEqual("STALE", httplib2._entry_disposition(response_headers, request_headers))
+
     def testExpirationModelDateOnly(self):
         now = time.time()
         response_headers = {

@@ -292,7 +292,10 @@ def _entry_disposition(response_headers, request_headers):
                 freshness_lifetime = 0
         elif response_headers.has_key('expires'):
             expires = email.Utils.parsedate_tz(response_headers['expires'])
-            freshness_lifetime = max(0, calendar.timegm(expires) - date)
+            if None == expires:
+                freshness_lifetime = 0
+            else:
+                freshness_lifetime = max(0, calendar.timegm(expires) - date)
         else:
             freshness_lifetime = 0
         if cc.has_key('max-age'):
