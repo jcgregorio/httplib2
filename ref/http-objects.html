@@ -61,7 +61,7 @@ Http objects have the following methods:
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-14' xml:id='l2h-14' class="method">request</tt></b>(</nobr></td>
-  <td><var>uri, </var><big>[</big><var>method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><var>uri, </var><big>[</big><var>method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Performs a single HTTP request.
 The <var>uri</var> is the URI of the HTTP resource and can begin with either <code>http</code> or <code>https</code>. The value of <var>uri</var> must be an absolute URI.
@@ -80,6 +80,10 @@ Any extra headers that are to be sent with the request should be provided in the
 
 <p>
 The maximum number of redirect to follow before raising an exception is <var>redirections</var>. The default is 5.
+
+<p>
+The <var>connection_type</var> is the type of connection object to use. The supplied class
+should implement the interface of httplib.HTTPConnection.
 
 <p>
 The return value is a tuple of (response, content), the first being and instance of the

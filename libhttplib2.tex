@@ -196,7 +196,7 @@ into the constructor of \class{Http}.
 
 Http objects have the following methods:
 
-\begin{methoddesc}[Http]{request}{uri, \optional{method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS}}
+\begin{methoddesc}[Http]{request}{uri, \optional{method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None}}
 Performs a single HTTP request.
 The \var{uri} is the URI of the HTTP resource and can begin with either \code{http} or \code{https}. The value of \var{uri} must be an absolute URI.
 
@@ -210,6 +210,9 @@ Any extra headers that are to be sent with the request should be provided in the
 \var{headers} dictionary.
 
 The maximum number of redirect to follow before raising an exception is \var{redirections}. The default is 5.
+
+The \var{connection_type} is the type of connection object to use. The supplied class
+should implement the interface of httplib.HTTPConnection.
 
 The return value is a tuple of (response, content), the first being and instance of the
 \class{Response} class, the second being a string that contains the response entity body.

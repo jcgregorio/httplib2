@@ -23,7 +23,7 @@ import os
 import urlparse
 import time
 import base64
-
+import StringIO
 
 # Python 2.3 support
 if not hasattr(unittest.TestCase, 'assertTrue'):
@@ -101,6 +101,40 @@ class UrlSafenameTest(unittest.TestCase):
         if sys.version_info >= (2,3):
             self.assertEqual( "xn--http,-4y1d.org,fred,a=b,579924c35db315e5a32e3d9963388193", httplib2.safename(u"http://\u2304.org/fred/?a=b"))
 
+class _MyResponse(StringIO.StringIO):
+    def __init__(self, body, **kwargs):
+        StringIO.StringIO.__init__(self, body)
+        self.headers = kwargs
+
+    def iteritems(self):
+        return self.headers.iteritems()
+
+
+class _MyHTTPConnection(object):
+    "This class is just a mock of httplib.HTTPConnection used for testing"
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.log = ""
+
+    def set_debuglevel(self, level):
+        pass
+
+    def connect(self):
+        "Connect to a host on a given port."
+        pass
+
+    def close(self):
+        pass
+
+    def request(self, method, request_uri, body, headers):
+        pass
+
+    def getresponse(self):
+        return _MyResponse("the body", status="200")
 
 
 class HttpTest(unittest.TestCase):
@@ -109,6 +143,11 @@ class HttpTest(unittest.TestCase):
             [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
         self.http = httplib2.Http(cacheDirName)
         self.http.clear_credentials()
+
+    def testConnectionType(self):
+        response, content = self.http.request("http://bitworking.org", connection_type=_MyHTTPConnection)
+        self.assertEqual(response['content-location'], "http://bitworking.org")
+        self.assertEqual(content, "the body")
 
     def testGetUnknownServer(self):
         self.http.force_exception_to_status_code = False 

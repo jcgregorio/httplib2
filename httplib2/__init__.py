@@ -370,7 +370,7 @@ def _wsse_username_token(cnonce, iso_now, password):
 # So we also need each Auth instance to be able to tell us
 # how close to the 'top' it is.
 
-class Authentication:
+class Authentication(object):
     def __init__(self, credentials, host, request_uri, headers, response, content, http):
         (scheme, authority, path, query, fragment) = parse_uri(request_uri)
         self.path = path
@@ -599,7 +599,7 @@ AUTH_SCHEME_ORDER = ["hmacdigest", "googlelogin", "digest", "wsse", "basic"]
 def _md5(s):
     return 
 
-class FileCache:
+class FileCache(object):
     """Uses a local directory as a store for cached files.
     Not really safe to use if multiple threads or processes are going to 
     be running on the same cache.
@@ -632,7 +632,7 @@ class FileCache:
         if os.path.exists(cacheFullPath):
             os.remove(cacheFullPath)
 
-class Credentials:
+class Credentials(object):
     def __init__(self):
         self.credentials = []
 
@@ -708,7 +708,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
 
 
-class Http:
+class Http(object):
     """An HTTP client that handles:
 - all methods
 - caching
@@ -875,7 +875,7 @@ and more.
 # including all socket.* and httplib.* exceptions.
 
 
-    def request(self, uri, method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS):
+    def request(self, uri, method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None):
         """ Performs a single HTTP request.
 The 'uri' is the URI of the HTTP resource and can begin 
 with either 'http' or 'https'. The value of 'uri' must be an absolute URI.
@@ -913,7 +913,8 @@ a string that contains the response entity body.
             if conn_key in self.connections:
                 conn = self.connections[conn_key]
             else:
-                connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
+                if not connection_type:
+                    connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
                 certs = list(self.certificates.iter(authority))
                 if scheme == 'https' and certs: 
                     conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1], timeout=self.timeout)
