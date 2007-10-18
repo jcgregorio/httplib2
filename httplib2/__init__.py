@@ -172,7 +172,7 @@ def safename(filename):
                 filename = filename.encode('idna')
             else:
                 filename = filename.encode('idna')
-    except:
+    except UnicodeError:
         pass
     if isinstance(filename,unicode):
         filename=filename.encode('utf-8')
@@ -288,7 +288,7 @@ def _entry_disposition(response_headers, request_headers):
         if cc_response.has_key('max-age'):
             try:
                 freshness_lifetime = int(cc_response['max-age'])
-            except:
+            except ValueError:
                 freshness_lifetime = 0
         elif response_headers.has_key('expires'):
             expires = email.Utils.parsedate_tz(response_headers['expires'])
@@ -301,12 +301,12 @@ def _entry_disposition(response_headers, request_headers):
         if cc.has_key('max-age'):
             try:
                 freshness_lifetime = int(cc['max-age'])
-            except:
+            except ValueError:
                 freshness_lifetime = 0
         if cc.has_key('min-fresh'):
             try:
                 min_fresh = int(cc['min-fresh'])
-            except:
+            except ValueError:
                 min_fresh = 0
             current_age += min_fresh 
         if freshness_lifetime > current_age:
@@ -324,7 +324,7 @@ def _decompressContent(response, new_content):
                 content = zlib.decompress(content)
             response['content-length'] = str(len(content))
             del response['content-encoding']
-    except:
+    except IOError:
         content = ""
         raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'), response, content)
     return content
@@ -617,7 +617,7 @@ class FileCache(object):
             f = file(cacheFullPath, "r")
             retval = f.read()
             f.close()
-        except:
+        except IOError:
             pass
         return retval
 
@@ -787,7 +787,7 @@ and more.
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
-            except Exception, e:
+            except httplib.HTTPException, e:
                 if i == 0:
                     conn.close()
                     conn.connect()
@@ -931,10 +931,10 @@ a string that contains the response entity body.
                 cachekey = defrag_uri
                 cached_value = self.cache.get(cachekey)
                 if cached_value:
+                    info = email.message_from_string(cached_value)
                     try:
-                        info = email.message_from_string(cached_value)
                         content = cached_value.split('\r\n\r\n', 1)[1]
-                    except Exception, e:
+                    except IndexError:
                         self.cache.delete(cachekey)
                         cachekey = None
                         cached_value = None
@@ -1081,5 +1081,3 @@ class Response(dict):
             return self 
         else:  
             raise AttributeError, name 
-
-
