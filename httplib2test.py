@@ -114,7 +114,7 @@ class _MyHTTPConnection(object):
     "This class is just a mock of httplib.HTTPConnection used for testing"
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None):
+                 strict=None, timeout=None, proxy_info=None):
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -145,6 +145,7 @@ class HttpTest(unittest.TestCase):
         self.http.clear_credentials()
 
     def testConnectionType(self):
+        self.http.force_exception_to_status_code = False 
         response, content = self.http.request("http://bitworking.org", connection_type=_MyHTTPConnection)
         self.assertEqual(response['content-location'], "http://bitworking.org")
         self.assertEqual(content, "the body")
@@ -222,6 +223,7 @@ class HttpTest(unittest.TestCase):
 
     def testUserAgentNonDefault(self):
         # Test that the default user-agent can be over-ridden
+
         uri = urlparse.urljoin(base, "user-agent/test.cgi")
         (response, content) = self.http.request(uri, "GET", headers={'User-Agent': 'fred/1.0'})
         self.assertEqual(response.status, 200)
@@ -589,9 +591,9 @@ class HttpTest(unittest.TestCase):
         self.assertTrue(content.startswith("Request Timeout"))
 
     def testIndividualTimeout(self):
-        self.http.force_exception_to_status_code = True 
         uri = urlparse.urljoin(base, "timeout/timeout.cgi")
         http = httplib2.Http(timeout=1)
+        http.force_exception_to_status_code = True 
 
         (response, content) = http.request(uri)
         self.assertEqual(response.status, 408)
@@ -740,8 +742,6 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.fromcache, True)
         (response, content) = self.http.request(uri, "PUT", headers={'if-match': 'fred'})
         self.assertEqual(response.status, 412)
-
-
 
     def testBasicAuth(self):
         # Test Basic Authentication
@@ -1260,4 +1260,3 @@ class HttpPrivateTest(unittest.TestCase):
         self.assertEquals(0, len(end2end))
 
 unittest.main()
-

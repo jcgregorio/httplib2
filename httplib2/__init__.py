@@ -7,10 +7,9 @@ to conserve bandwidth.
 
 Requires Python 2.3 or later
 
-Supports:
-    - HTTPS
-    - Basic
-    - Digest
+Changelog:
+2007-08-18, Rick: Modified so it's able to use a socks proxy if needed.
+
 """
 
 __author__ = "Joe Gregorio (joe@bitworking.org)"
@@ -46,6 +45,11 @@ import sha
 import hmac
 from gettext import gettext as _
 import socket
+
+try:
+    import socks
+except ImportError:
+    socks = None
 
 if sys.version_info >= (2,3):
     from iri2uri import iri2uri
@@ -653,12 +657,31 @@ class KeyCerts(Credentials):
     pass
 
 
+class ProxyInfo(object):
+  """Collect information required to use a proxy."""
+  def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=None, proxy_user=None, proxy_pass=None):
+      """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
+      constants. For example:
+
+p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_port=8000)
+      """
+      self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns, self.proxy_user, self.proxy_pass = proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass
+
+  def astuple(self):
+    return (self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns,
+        self.proxy_user, self.proxy_pass)
+
+  def isgood(self):
+    return socks and (self.proxy_host != None) and (self.proxy_port != None)
+
+
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
     """HTTPConnection subclass that supports timeouts"""
 
-    def __init__(self, host, port=None, strict=None, timeout=None):
+    def __init__(self, host, port=None, strict=None, timeout=None, proxy_info=None):
         httplib.HTTPConnection.__init__(self, host, port, strict)
         self.timeout = timeout
+        self.proxy_info = proxy_info
 
     def connect(self):
         """Connect to the host and port specified in __init__."""
@@ -668,7 +691,11 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                 socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
             try:
-                self.sock = socket.socket(af, socktype, proto)
+                if self.proxy_info and self.proxy_info.isgood():
+                    self.sock = socks.socksocket(af, socktype, proto)
+                    self.sock.setproxy(*self.proxy_info.astuple())
+                else:
+                    self.sock = socket.socket(af, socktype, proto)
                 # Different from httplib: support timeouts.
                 if self.timeout is not None:
                     self.sock.settimeout(self.timeout)
@@ -691,15 +718,20 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
     "This class allows communication via SSL."
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None):
+                 strict=None, timeout=None, proxy_info=None):
         self.timeout = timeout
+        self.proxy_info = proxy_info
         httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file,
                 cert_file=cert_file, strict=strict)
 
     def connect(self):
         "Connect to a host on a given (SSL) port."
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if self.proxy_info and self.proxy_info.isgood():
+            self.sock.setproxy(*self.proxy_info.astuple())
+            sock.setproxy(*self.proxy_info.astuple())
+        else:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.timeout is not None:
             sock.settimeout(self.timeout)
         sock.connect((self.host, self.port))
@@ -721,7 +753,13 @@ class Http(object):
 
 and more.
     """
-    def __init__(self, cache=None, timeout=None):
+    def __init__(self, cache=None, timeout=None, proxy_info=None):
+        """The value of proxy_info is a ProxyInfo instance.
+
+If 'cache' is a string then it is used as a directory name
+for a disk cache. Otherwise it must be an object that supports
+the same interface as FileCache."""
+        self.proxy_info = proxy_info
         # Map domain name to an httplib connection
         self.connections = {}
         # The location of the cache, for now a directory
@@ -732,7 +770,7 @@ and more.
             self.cache = cache
 
         # Name/password
-        self.credentials = Credentials() 
+        self.credentials = Credentials()
 
         # Key/cert
         self.certificates = KeyCerts()
@@ -743,13 +781,13 @@ and more.
         # If set to False then no redirects are followed, even safe ones.
         self.follow_redirects = True
 
-        # If 'follow_redirects' is True, and this is set to True then 
+        # If 'follow_redirects' is True, and this is set to True then
         # all redirecs are followed, including unsafe ones.
         self.follow_all_redirects = False
 
         self.ignore_etag = False
 
-        self.force_exception_to_status_code = True 
+        self.force_exception_to_status_code = False 
 
         self.timeout = timeout
 
@@ -761,7 +799,7 @@ and more.
         for cred in self.credentials.iter(host):
             for scheme in AUTH_SCHEME_ORDER:
                 if challenges.has_key(scheme):
-                    yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content, self) 
+                    yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content, self)
 
     def add_credentials(self, name, password, domain=""):
         """Add a name and password that will be used
@@ -829,7 +867,7 @@ and more.
                     authorization.response(response, body)
                     break
 
-        if ((self.follow_all_redirects or method in ["GET", "HEAD"]) or response.status == 303):
+        if (self.follow_all_redirects or (method in ["GET", "HEAD"]) or response.status == 303):
             if self.follow_redirects and response.status in [300, 301, 302, 303, 307]:
                 # Pick out the location header and basically start from the beginning
                 # remembering first to strip the ETag header and decrement our 'depth'
@@ -916,10 +954,11 @@ a string that contains the response entity body.
                 if not connection_type:
                     connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
                 certs = list(self.certificates.iter(authority))
-                if scheme == 'https' and certs: 
-                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0], cert_file=certs[0][1], timeout=self.timeout)
+                if scheme == 'https' and certs:
+                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0],
+                        cert_file=certs[0][1], timeout=self.timeout, proxy_info=self.proxy_info)
                 else:
-                    conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout)
+                    conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout, proxy_info=self.proxy_info)
                 conn.set_debuglevel(debuglevel)
 
             if method in ["GET", "HEAD"] and 'range' not in headers:
@@ -940,9 +979,9 @@ a string that contains the response entity body.
                         cached_value = None
             else:
                 cachekey = None
-                        
+
             if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
-                # http://www.w3.org/1999/04/Editing/ 
+                # http://www.w3.org/1999/04/Editing/
                 headers['if-match'] = info['etag']
 
             if method not in ["GET", "HEAD"] and self.cache and cachekey:
