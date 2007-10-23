@@ -95,6 +95,9 @@ The <tt class="module">httplib2</tt> module is a comprehensive HTTP client libra
 <dt><strong>Compression</strong></dt>
 <dd>Handles both 'deflate' and 'gzip' types of compression.
 </dd>
+<dt><strong>Proxies</strong></dt>
+<dd>If the Socksipy module is installed then httplib2 can handle sock4, sock5 and http proxies.
+</dd>
 <dt><strong>Lost update support</strong></dt>
 <dd>Automatically adds back ETags into PUT requests to resources we have already cached. This implements Section 3.2 of Detecting the Lost Update Problem Using Unreserved Checkout
 </dd>
@@ -170,13 +173,16 @@ are unfamiliar with.
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-11' xml:id='l2h-11' class="class">Http</tt></b>(</nobr></td>
-  <td><var></var><big>[</big><var>cache=None</var><big>]</big><var>, </var><big>[</big><var>timeout=None</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><var></var><big>[</big><var>cache=None</var><big>]</big><var>, </var><big>[</big><var>timeout=None</var><big>]</big><var>, </var><big>[</big><var>proxy_info=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 The class that represents a client HTTP interface.
 The <var>cache</var> parameter is either the name of a directory
 to be used as a flat file cache, or it must an object that 
 implements the required caching interface.
 The <var>timeout</var> parameter is the socket level timeout.
+The <var>proxy_info</var> is an instance of <tt class="class">ProxyInfo</tt> and is supplied
+if a proxy is to be used. Note that the Socksipy module must be
+installed for proxy support to work.
 </dl>
 
 <p>
@@ -203,6 +209,18 @@ The optional <var>safe</var> parameter is a funtion which generates
 the cache filename for each URI. A FileCache object is 
 constructed and used for caching when you pass a directory name
 into the constructor of <tt class="class">Http</tt>.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-14' xml:id='l2h-14' class="class">ProxyInfo</tt></b>(</nobr></td>
+  <td><var>proxy_type, proxy_host, proxy_port, </var><big>[</big><var>proxy_rdns=None</var><big>]</big><var>, </var><big>[</big><var>proxy_user=None</var><big>]</big><var>, </var><big>[</big><var>proxy_pass=None</var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+The parameter <var>proxy_type</var> must be set to one of socks.PROXY_TYPE_XXX
+constants. The <var>proxy_host</var> and <var>proxy_port</var> must be set to the location
+of the proxy. The optional <var>proxy_rdns</var> should be set to True if
+the DNS server on the proxy should be used. The <var>proxy_user</var> and 
+<var>proxy_pass</var> are supplied when the proxy is protected by authentication.
 </dl>
 
 <p>

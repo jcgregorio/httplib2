@@ -60,7 +60,7 @@ Http objects have the following methods:
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-14' xml:id='l2h-14' class="method">request</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-15' xml:id='l2h-15' class="method">request</tt></b>(</nobr></td>
   <td><var>uri, </var><big>[</big><var>method="GET", body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Performs a single HTTP request.
@@ -92,7 +92,7 @@ The return value is a tuple of (response, content), the first being and instance
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-15' xml:id='l2h-15' class="method">add_credentials</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-16' xml:id='l2h-16' class="method">add_credentials</tt></b>(</nobr></td>
   <td><var>name, password, </var><big>[</big><var>domain=None</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Adds a name and password that will be used when a request 
@@ -104,7 +104,7 @@ be used to try to satisfy every HTTP 401 challenge.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-16' xml:id='l2h-16' class="method">add_certificate</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-17' xml:id='l2h-17' class="method">add_certificate</tt></b>(</nobr></td>
   <td><var>key, cert, domain</var>)</td></tr></table></dt>
 <dd>
 Add a <var>key</var> and <var>cert</var> that will be used for an SSL connection
@@ -114,14 +114,14 @@ file that contains your private key. <var>certfile</var> is a PEM formatted cert
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-17' xml:id='l2h-17' class="method">clear_credentials</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-18' xml:id='l2h-18' class="method">clear_credentials</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 Remove all the names and passwords used for authentication.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-18' xml:id='l2h-18' class="member">follow_redirects</tt></b></dt>
+<dl><dt><b><tt id='l2h-19' xml:id='l2h-19' class="member">follow_redirects</tt></b></dt>
 <dd>
 If <code>True</code>, which is the default, safe redirects are followed, where
 safe means that the client is only doing a <code>GET</code> or <code>HEAD</code> on the
@@ -132,7 +132,7 @@ must be True.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-19' xml:id='l2h-19' class="member">follow_all_redirects</tt></b></dt>
+<dl><dt><b><tt id='l2h-20' xml:id='l2h-20' class="member">follow_all_redirects</tt></b></dt>
 <dd>
 If <code>False</code>, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a <code>GET</code> or <code>HEAD</code> on the
@@ -143,7 +143,7 @@ must be True.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-20' xml:id='l2h-20' class="member">force_exception_to_status_code</tt></b></dt>
+<dl><dt><b><tt id='l2h-21' xml:id='l2h-21' class="member">force_exception_to_status_code</tt></b></dt>
 <dd>
 If <code>True</code>, which is the default, then no <tt class="module">httplib2</tt> exceptions will be thrown. Instead,
 those error conditions will be turned into <tt class="class">Response</tt> objects
@@ -154,7 +154,7 @@ If <code>False</code>, then exceptions will be thrown.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-21' xml:id='l2h-21' class="member">ignore_etag</tt></b></dt>
+<dl><dt><b><tt id='l2h-22' xml:id='l2h-22' class="member">ignore_etag</tt></b></dt>
 <dd>
 Defaults to <code>False</code>. If <code>True</code>, then any etags present in the cached response
 are ignored when processing the current request, i.e. httplib2 does <strong>not</strong> use

@@ -125,6 +125,19 @@ body for a POST request.
 </pre></div>
 
 <p>
+Here is an example of using a proxy server:
+<div class="verbatim"><pre>
+import httplib2
+import socks
+
+httplib2.debuglevel=4
+h = httplib2.Http(proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8000))
+r,c = h.request("http://bitworking.org/news/")
+</pre></div>
+
+<p>
+
+<p>
 <IMG
  WIDTH="556" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
  SRC="img1.png"
