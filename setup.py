@@ -1,5 +1,5 @@
 from distutils.core import setup
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 setup(name='httplib2',
         version=VERSION, 
         author='Joe Gregorio',

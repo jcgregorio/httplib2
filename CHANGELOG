@@ -1,9 +1,16 @@
-0.X.0
+0.4.0
 
-   XXX
+   Added support for proxies if the Socksipy module is installed.
+
+   Fixed bug with some HEAD responses having content-length set to 
+   zero incorrectly.
+
+   Fixed most except's to catch a specific exception.
 
    Added 'connection_type' parameter to Http.request().
-
+ 
+   The default for 'force_exception_to_status_code' was changed to False. Defaulting
+   to True was causing quite a bit of confusion.
 
 
 0.3.0

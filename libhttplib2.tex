@@ -76,6 +76,8 @@ The \module{httplib2} module is a comprehensive HTTP client library with the fol
     Automatically follows 3XX redirects on GETs.
 \item[Compression]
     Handles both 'deflate' and 'gzip' types of compression.
+\item[Proxies]
+    If the Socksipy module is installed then httplib2 can handle sock4, sock5 and http proxies.
 \item[Lost update support]
     Automatically adds back ETags into PUT requests to resources we have already cached. This implements Section 3.2 of Detecting the Lost Update Problem Using Unreserved Checkout
 \end{description}
@@ -157,12 +159,15 @@ are unfamiliar with.
 %  memberdesc	- data members, like datadesc, but with an optional
 %		  type name like methoddesc.
 
-\begin{classdesc}{Http}{\optional{cache=None}, \optional{timeout=None}}
+\begin{classdesc}{Http}{\optional{cache=None}, \optional{timeout=None}, \optional{proxy_info=None}}
 The class that represents a client HTTP interface.
 The \var{cache} parameter is either the name of a directory
 to be used as a flat file cache, or it must an object that 
 implements the required caching interface.
 The \var{timeout} parameter is the socket level timeout.
+The \var{proxy_info} is an instance of \class{ProxyInfo} and is supplied
+if a proxy is to be used. Note that the Socksipy module must be
+installed for proxy support to work.
 \end{classdesc}
 
 \begin{classdesc}{Response}{info}
@@ -181,6 +186,14 @@ The optional \var{safe} parameter is a funtion which generates
 the cache filename for each URI. A FileCache object is 
 constructed and used for caching when you pass a directory name
 into the constructor of \class{Http}.
+\end{classdesc}
+
+\begin{classdesc}{ProxyInfo}{proxy_type, proxy_host, proxy_port, \optional{proxy_rdns=None}, \optional{proxy_user=None}, \optional{proxy_pass=None}}
+The parameter \var{proxy_type} must be set to one of socks.PROXY_TYPE_XXX
+constants. The \var{proxy_host} and \var{proxy_port} must be set to the location
+of the proxy. The optional \var{proxy_rdns} should be set to True if
+the DNS server on the proxy should be used. The \var{proxy_user} and 
+\var{proxy_pass} are supplied when the proxy is protected by authentication.
 \end{classdesc}
 
 
@@ -291,7 +304,6 @@ Takes a string \var{key} and \var{value} and stores it in the cache.
 Deletes the cached value stored at \var{key}. The value
 of \var{key} is a string.
 \end{methoddesc}
-
 
 
 
@@ -414,3 +426,16 @@ body for a POST request.
 >>> resp, content = h.request("http://example.com", method="POST", body=body)
 \end{verbatim}
 % Note that there is no trailing ">>> " prompt shown.
+
+Here is an example of using a proxy server:
+\begin{verbatim}
+import httplib2
+import socks
+
+httplib2.debuglevel=4
+h = httplib2.Http(proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8000))
+r,c = h.request("http://bitworking.org/news/")
+\end{verbatim}
+
+
+
