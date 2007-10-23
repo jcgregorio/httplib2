@@ -57,7 +57,7 @@ else:
     def iri2uri(uri):
         return uri
 
-__all__ = ['Http', 'Response', 'HttpLib2Error',
+__all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
   'UnimplementedDigestAuthOptionError', 'UnimplementedHmacDigestAuthOptionError',
   'debuglevel']
