@@ -548,6 +548,14 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 410)
 
+    def testHeadGZip(self):
+        # Test that we don't try to decompress a HEAD response 
+        uri = urlparse.urljoin(base, "gzip/final-destination.txt")
+        (response, content) = self.http.request(uri, "HEAD")
+        self.assertEqual(response.status, 200)
+        self.assertNotEqual(int(response['content-length']), 0)
+        self.assertEqual(content, "")
+
     def testGetGZip(self):
         # Test that we support gzip compression
         uri = urlparse.urljoin(base, "gzip/final-destination.txt")
