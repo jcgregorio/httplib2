@@ -327,6 +327,8 @@ def _decompressContent(response, new_content):
             if encoding == 'deflate':
                 content = zlib.decompress(content)
             response['content-length'] = str(len(content))
+            # Record the historical presence of the encoding in a way the won't interfere.
+            response['-content-encoding'] = response['content-encoding']
             del response['content-encoding']
     except IOError:
         content = ""
@@ -577,6 +579,7 @@ class GoogleLoginAuthentication(Authentication):
 
         auth = dict(Email=credentials[0], Passwd=credentials[1], service=service, source=headers['user-agent'])
         resp, content = self.http.request("https://www.google.com/accounts/ClientLogin", method="POST", body=urlencode(auth), headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        print content
         lines = content.split('\n')
         d = dict([tuple(line.split("=", 1)) for line in lines if line])
         if resp.status == 403:

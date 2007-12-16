@@ -562,6 +562,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertFalse(response.has_key('content-encoding'))
+        self.assertTrue(response.has_key('-content-encoding'))
         self.assertEqual(int(response['content-length']), len("This is the final destination.\n"))
         self.assertEqual(content, "This is the final destination.\n")
 
