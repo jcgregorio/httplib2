@@ -66,6 +66,7 @@ __all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
 # The httplib debug level, set to a non-zero value to get debug output
 debuglevel = 0
 
+
 # Python 2.3 support
 if sys.version_info < (2,4):
     def sorted(seq):
@@ -827,7 +828,7 @@ the same interface as FileCache."""
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
-            except httplib.HTTPException, e:
+            except (socket.error, httplib.HTTPException):
                 if i == 0:
                     conn.close()
                     conn.connect()
@@ -949,6 +950,10 @@ a string that contains the response entity body.
             uri = iri2uri(uri)
 
             (scheme, authority, request_uri, defrag_uri) = urlnorm(uri)
+            domain_port = authority.split(":")[0:2]
+            if len(domain_port) == 2 and domain_port[1] == '443' and scheme == 'http':
+                scheme = 'https'
+                authority = domain_port[0]
 
             conn_key = scheme+":"+authority
             if conn_key in self.connections:
