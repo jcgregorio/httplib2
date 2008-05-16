@@ -30,6 +30,7 @@ import md5
 import email
 import email.Utils
 import email.Message
+import email.FeedParser
 import StringIO
 import gzip
 import zlib
@@ -978,7 +979,15 @@ a string that contains the response entity body.
                 cachekey = defrag_uri
                 cached_value = self.cache.get(cachekey)
                 if cached_value:
-                    info = email.message_from_string(cached_value)
+                    # info = email.message_from_string(cached_value)
+                    #
+                    # Need to replace the line above with the kludge below
+                    # to fix the non-existent bug not fixed in this
+                    # bug report: http://mail.python.org/pipermail/python-bugs-list/2005-September/030289.html
+                    feedparser = email.FeedParser.FeedParser()
+                    feedparser.feed(cached_value)
+                    info = feedparser.close()
+                    feedparser._parse = None
                     try:
                         content = cached_value.split('\r\n\r\n', 1)[1]
                     except IndexError:
