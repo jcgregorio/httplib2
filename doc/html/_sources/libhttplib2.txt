@@ -299,6 +299,14 @@ Http Objects
    If ``False``, then exceptions will be thrown.
 
 
+.. attribute:: Http.optimistic_concurrency_methods
+
+   By default a list that only contains "PUT", this attribute
+   controls which methods will get 'if-match' headers attached
+   to them from cached responses with etags. You can append
+   new items to this list to add new methods that should
+   get this support, such as "PATCH".
+
 .. attribute:: Http.ignore_etag
 
    Defaults to ``False``. If ``True``, then any etags present in the cached

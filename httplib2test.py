@@ -739,6 +739,21 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "PUT")
         self.assertEqual(response.status, 412)
 
+    def testUpdateUsesCachedETagAndOCMethod(self):
+        # Test that we natively support http://www.w3.org/1999/04/Editing/ 
+        uri = urlparse.urljoin(base, "conditional-updates/test.cgi")
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False)
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True)
+        self.http.optimistic_concurrency_methods.append("DELETE")
+        (response, content) = self.http.request(uri, "DELETE")
+        self.assertEqual(response.status, 200)
+
+
     def testUpdateUsesCachedETagOverridden(self):
         # Test that we natively support http://www.w3.org/1999/04/Editing/ 
         uri = urlparse.urljoin(base, "conditional-updates/test.cgi")

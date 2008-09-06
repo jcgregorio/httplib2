@@ -256,6 +256,15 @@ objects that will be returned normally.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="httplib2.Http.optimistic_concurrency_methods">
+<!--[httplib2.Http.optimistic_concurrency_methods]--><tt class="descclassname">Http.</tt><tt class="descname">optimistic_concurrency_methods</tt><a class="headerlink" href="#httplib2.Http.optimistic_concurrency_methods" title="Permalink to this definition">¶</a></dt>
+<dd>By default a list that only contains &#8220;PUT&#8221;, this attribute
+controls which methods will get &#8216;if-match&#8217; headers attached
+to them from cached responses with etags. You can append
+new items to this list to add new methods that should
+get this support, such as &#8220;PATCH&#8221;.</dd></dl>
+
+<dl class="attribute">
 <dt id="httplib2.Http.ignore_etag">
 <!--[httplib2.Http.ignore_etag]--><tt class="descclassname">Http.</tt><tt class="descname">ignore_etag</tt><a class="headerlink" href="#httplib2.Http.ignore_etag" title="Permalink to this definition">¶</a></dt>
 <dd>Defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. If <tt class="xref docutils literal"><span class="pre">True</span></tt>, then any etags present in the cached
@@ -434,7 +443,7 @@ request.</p>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Joe Gregorio.
-      Last updated on Sep 05, 2008.
+      Last updated on Sep 06, 2008.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
     </div>
   </body>

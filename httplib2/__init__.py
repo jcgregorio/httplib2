@@ -785,6 +785,10 @@ the same interface as FileCache."""
 
         # If set to False then no redirects are followed, even safe ones.
         self.follow_redirects = True
+        
+        # Which HTTP methods do we apply optimistic concurrency to, i.e.
+        # which methods get an "if-match:" etag header added to them.
+        self.optimistic_concurrency_methods = ["PUT"]
 
         # If 'follow_redirects' is True, and this is set to True then
         # all redirecs are followed, including unsafe ones.
@@ -998,7 +1002,7 @@ a string that contains the response entity body.
             else:
                 cachekey = None
 
-            if method in ["PUT"] and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
+            if method in self.optimistic_concurrency_methods and self.cache and info.has_key('etag') and not self.ignore_etag and 'if-match' not in headers:
                 # http://www.w3.org/1999/04/Editing/
                 headers['if-match'] = info['etag']
 
