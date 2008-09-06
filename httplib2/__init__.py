@@ -429,11 +429,11 @@ class DigestAuthentication(Authentication):
         Authentication.__init__(self, credentials, host, request_uri, headers, response, content, http)
         challenge = _parse_www_authenticate(response, 'www-authenticate')
         self.challenge = challenge['digest']
-        qop = self.challenge.get('qop')
+        qop = self.challenge.get('qop', 'auth')
         self.challenge['qop'] = ('auth' in [x.strip() for x in qop.split()]) and 'auth' or None
         if self.challenge['qop'] is None:
             raise UnimplementedDigestAuthOptionError( _("Unsupported value for qop: %s." % qop))
-        self.challenge['algorithm'] = self.challenge.get('algorithm', 'MD5')
+        self.challenge['algorithm'] = self.challenge.get('algorithm', 'MD5').upper()
         if self.challenge['algorithm'] != 'MD5':
             raise UnimplementedDigestAuthOptionError( _("Unsupported value for algorithm: %s." % self.challenge['algorithm']))
         self.A1 = "".join([self.credentials[0], ":", self.challenge['realm'], ":", self.credentials[1]])   
@@ -622,7 +622,7 @@ class FileCache(object):
         retval = None
         cacheFullPath = os.path.join(self.cache, self.safe(key))
         try:
-            f = file(cacheFullPath, "r")
+            f = file(cacheFullPath, "rb")
             retval = f.read()
             f.close()
         except IOError:
@@ -631,7 +631,7 @@ class FileCache(object):
 
     def set(self, key, value):
         cacheFullPath = os.path.join(self.cache, self.safe(key))
-        f = file(cacheFullPath, "w")
+        f = file(cacheFullPath, "wb")
         f.write(value)
         f.close()
 
@@ -706,6 +706,7 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                     # End of difference from httplib.
                 if self.debuglevel > 0:
                     print "connect: (%s, %s)" % (self.host, self.port)
+
                 self.sock.connect(sa)
             except socket.error, msg:
                 if self.debuglevel > 0:
@@ -970,7 +971,7 @@ a string that contains the response entity body.
                     conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout, proxy_info=self.proxy_info)
                 conn.set_debuglevel(debuglevel)
 
-            if method in ["GET", "HEAD"] and 'range' not in headers:
+            if method in ["GET", "HEAD"] and 'range' not in headers and 'accept-encoding' not in headers:
                 headers['accept-encoding'] = 'compress, gzip'
 
             info = email.Message.Message()
