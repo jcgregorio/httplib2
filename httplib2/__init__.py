@@ -989,12 +989,12 @@ a string that contains the response entity body.
                     # Need to replace the line above with the kludge below
                     # to fix the non-existent bug not fixed in this
                     # bug report: http://mail.python.org/pipermail/python-bugs-list/2005-September/030289.html
-                    feedparser = email.FeedParser.FeedParser()
-                    feedparser.feed(cached_value)
-                    info = feedparser.close()
-                    feedparser._parse = None
                     try:
-                        content = cached_value.split('\r\n\r\n', 1)[1]
+                        info, content = cached_value.split('\r\n\r\n', 1)
+                        feedparser = email.FeedParser.FeedParser()
+                        feedparser.feed(info)
+                        info = feedparser.close()
+                        feedparser._parse = None
                     except IndexError:
                         self.cache.delete(cachekey)
                         cachekey = None
