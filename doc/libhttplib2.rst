@@ -292,11 +292,11 @@ Http Objects
 
 .. attribute:: Http.force_exception_to_status_code
 
-   If ``True``, which is the default, then no :mod:`httplib2` exceptions will be
+   If ``True`` then no :mod:`httplib2` exceptions will be
    thrown. Instead, those error conditions will be turned into :class:`Response`
    objects that will be returned normally.
 
-   If ``False``, then exceptions will be thrown.
+   If ``False``, which is the default, then exceptions will be thrown.
 
 
 .. attribute:: Http.optimistic_concurrency_methods
