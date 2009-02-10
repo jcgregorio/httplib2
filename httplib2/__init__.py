@@ -1140,7 +1140,7 @@ class Response(dict):
         # an httplib.HTTPResponse object.
         if isinstance(info, httplib.HTTPResponse):
             for key, value in info.getheaders(): 
-                self[key] = value 
+                self[key.lower()] = value 
             self.status = info.status
             self['status'] = str(self.status)
             self.reason = info.reason
