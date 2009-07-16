@@ -742,10 +742,10 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None):
-        self.timeout = timeout
-        self.proxy_info = proxy_info
         httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file,
                 cert_file=cert_file, strict=strict)
+        self.timeout = timeout
+        self.proxy_info = proxy_info
 
     def connect(self):
         "Connect to a host on a given (SSL) port."

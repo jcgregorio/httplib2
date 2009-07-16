@@ -611,6 +611,10 @@ class HttpTest(unittest.TestCase):
         self.assertTrue(content.startswith("Request Timeout"))
 
 
+    def testHTTPSInitTimeout(self):
+        c = httplib2.HTTPSConnectionWithTimeout('localhost', 80, timeout=47)
+        self.assertEqual(47, c.timeout)
+
     def testGetDeflate(self):
         # Test that we support deflate compression
         uri = urlparse.urljoin(base, "deflate/deflated.asis")
