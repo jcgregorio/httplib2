@@ -1074,7 +1074,13 @@ a string that contains the response entity body.
                     self.cache.delete(cachekey)
                     content = new_content 
             else: 
-                (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
+                cc = _parse_cache_control(headers)
+                if 'only-if-cached'in cc:
+                    info['status'] = '504'
+                    response = Response(info)
+                    content = b""
+                else:
+                    (response, content) = self._request(conn, authority, uri, request_uri, method, body, headers, redirections, cachekey)
         except Exception as e:
             if self.force_exception_to_status_code:
                 if isinstance(e, HttpLib2ErrorWithResponse):

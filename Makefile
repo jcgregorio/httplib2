@@ -1,3 +1,5 @@
+tests:
+	python httplib2test.py
 release:
 	python2.4 setup.py sdist --formats=gztar,zip
 doc:
