@@ -860,7 +860,9 @@ the same interface as FileCache."""
                 else:
                     raise
             else:
-                content = response.read()
+                content = ""
+                if method != "HEAD":
+                    content = response.read()
                 response = Response(response)
                 if method != "HEAD":
                     content = _decompressContent(response, content)

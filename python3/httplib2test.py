@@ -185,6 +185,16 @@ class HttpTest(unittest.TestCase):
             (response, content) = self.http.request(uri, method, body=b" ")
             self.assertEqual(response['x-method'], method)
 
+    def testHeadRead(self):
+        # Test that we don't try to read the response of a HEAD request
+        # since httplib blocks response.read() for HEAD requests.
+        # Oddly enough this doesn't appear as a problem when doing HEAD requests
+        # against Apache servers.
+        uri = "http://www.google.com/"
+        (response, content) = self.http.request(uri, "HEAD")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(content, b"")
+
     def testGetNoCache(self):
         # Test that can do a GET w/o the cache turned on.
         http = httplib2.Http()
