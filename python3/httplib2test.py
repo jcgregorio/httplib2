@@ -978,6 +978,15 @@ class HttpPrivateTest(unittest.TestCase):
         cc = httplib2._parse_cache_control({'cache-control': ' , '})
         self.assertEqual(cc[''], 1)
 
+        try:
+            cc = httplib2._parse_cache_control({'cache-control': 'Max-age=3600;post-check=1800,pre-check=3600'})
+            self.assertTrue("max-age" in cc)
+        except:
+            self.fail("Should not throw exception")
+
+
+
+
     def testNormalizeHeaders(self):
         # Test that we normalize headers to lowercase 
         h = httplib2._normalize_headers({'Cache-Control': 'no-cache', 'Other': 'Stuff'})
