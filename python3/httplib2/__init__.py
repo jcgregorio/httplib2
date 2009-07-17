@@ -833,10 +833,15 @@ the same interface as FileCache."""
         for i in range(2):
             try:
                 conn.request(method, request_uri, body, headers)
-                response = conn.getresponse()
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
+            except (socket.error, httplib.HTTPException):
+                # Just because the server closed the connection doesn't apparently mean
+                # that the server didn't send a response.
+                pass
+            try:
+                response = conn.getresponse()
             except (socket.error, http.client.HTTPException):
                 if i == 0:
                     conn.close()
@@ -852,7 +857,7 @@ the same interface as FileCache."""
                 if method != "HEAD":
                     content = _decompressContent(response, content)
 
-            break;
+            break
         return (response, content)
 
 
