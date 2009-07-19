@@ -1,3 +1,16 @@
+0.5.0
+
+   Added Python 3 support
+
+   Fixed the following bugs:
+
+      #12 - Cache-Control: only-if-cached incorrectly does request if item not in cache 
+      #39 - Deprecation warnings in Python 2.6
+      #56 - Block on response.read() for HEAD requests.
+      #57 - Timeout ignore for Python 2.6
+      #58 - Fixed parsing of Cache-Control: header to make it more robust
+
+
 0.4.0
 
    Added support for proxies if the Socksipy module is installed.

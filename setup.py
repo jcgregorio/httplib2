@@ -1,11 +1,11 @@
 from distutils.core import setup
-VERSION = '0.4.0'
+VERSION = '0.5.0'
 setup(name='httplib2',
         version=VERSION, 
         author='Joe Gregorio',
         author_email='joe@bitworking.org',
-        url='http://bitworking.org/projects/httplib2/',
-        download_url='http://bitworking.org/projects/httplib2/dist/httplib2-%s.tar.gz' % VERSION,
+        url='http://code.google.com/p/httplib2/',
+        download_url='http://httplib2.googlecode.com/files/httplib2-%s.tar.gz' % VERSION,
         description='A comprehensive HTTP client library.',
         license='MIT',
         long_description="""
@@ -60,6 +60,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries',
         ],
