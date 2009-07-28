@@ -751,7 +751,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         "Connect to a host on a given (SSL) port."
 
         if self.proxy_info and self.proxy_info.isgood():
-            self.sock.setproxy(*self.proxy_info.astuple())
+            sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setproxy(*self.proxy_info.astuple())
         else:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

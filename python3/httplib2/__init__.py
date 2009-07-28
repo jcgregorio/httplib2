@@ -355,7 +355,7 @@ def _cnonce():
     return dig[:16]
 
 def _wsse_username_token(cnonce, iso_now, password):
-    return base64.encodestring(_sha(("%s%s%s" % (cnonce, iso_now, password)).encode('utf-8')).digest()).strip()
+    return base64.encodebytes(_sha(("%s%s%s" % (cnonce, iso_now, password)).encode('utf-8')).digest()).strip()
 
 
 # For credentials we need two things, first 
@@ -427,7 +427,7 @@ class BasicAuthentication(Authentication):
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
         Authorization header."""
-        headers['authorization'] = 'Basic ' + base64.encodestring(("%s:%s" % self.credentials).encode('utf-8')).strip().decode('utf-8')
+        headers['authorization'] = 'Basic ' + base64.encodebytes(("%s:%s" % self.credentials).encode('utf-8')).strip().decode('utf-8')
 
 
 class DigestAuthentication(Authentication):
@@ -737,7 +737,7 @@ class HTTPSConnectionWithTimeout(http.client.HTTPSConnection):
         "Connect to a host on a given (SSL) port."
 
         if self.proxy_info and self.proxy_info.isgood():
-            self.sock.setproxy(*self.proxy_info.astuple())
+            sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setproxy(*self.proxy_info.astuple())
         else:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
