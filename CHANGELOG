@@ -6,10 +6,12 @@
 
       #12 - Cache-Control: only-if-cached incorrectly does request if item not in cache 
       #39 - Deprecation warnings in Python 2.6
+      #54 - Http.request fails accesing Google account via http proxy
       #56 - Block on response.read() for HEAD requests.
       #57 - Timeout ignore for Python 2.6
       #58 - Fixed parsing of Cache-Control: header to make it more robust
 
+  Also fixed a deprecation warning that appeared between Python 3.0 and 3.1.
 
 0.4.0
 
