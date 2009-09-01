@@ -950,6 +950,16 @@ class HttpTest(unittest.TestCase):
         d = self.reflector(content)
         self.assertTrue(d.has_key('HTTP_USER_AGENT')) 
 
+    def testConnectionClose(self):
+        uri = "http://www.google.com/"
+        (response, content) = self.http.request(uri, "GET")
+        for c in self.http.connections.values():
+            self.assertNotEqual(None, c.sock)
+        (response, content) = self.http.request(uri, "GET", headers={"connection": "close"})
+        for c in self.http.connections.values():
+            self.assertEqual(None, c.sock)
+
+
 try:
     import memcache
     class HttpTestMemCached(HttpTest):
