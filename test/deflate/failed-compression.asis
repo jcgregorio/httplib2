@@ -1,3 +1,4 @@
+#!/usr/bin/tail --lines=+2
 Content-Encoding: gzip
 Content-Type: text/plain
 Status: 200 Ok

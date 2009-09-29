@@ -1,3 +1,4 @@
+#!/usr/bin/tail --lines=+2
 Status: 200 Ok
 Last-Modified: Fri, 30 Dec 2005 21:57:33 GMT
 Etag: "11c415a-8826-eb9c2d40"

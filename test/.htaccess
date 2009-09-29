@@ -1,5 +1,5 @@
-AddHandler send-as-is asis
+AddHandler cgi-script .asis
 Options +ExecCGI
 ExpiresActive On
 ExpiresDefault "access plus 2 hours"
-SecFilterEngine Off
+# removed by cornerhost: SecFilterEngine Off

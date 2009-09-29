@@ -986,7 +986,7 @@ a string that contains the response entity body.
                 conn.set_debuglevel(debuglevel)
 
             if method in ["GET", "HEAD"] and 'range' not in headers and 'accept-encoding' not in headers:
-                headers['accept-encoding'] = 'deflate, gzip'
+                headers['accept-encoding'] = 'gzip, deflate'
 
             info = email.message.Message()
             cached_value = None
