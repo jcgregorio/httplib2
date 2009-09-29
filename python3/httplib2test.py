@@ -757,9 +757,9 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
-        (response, content) = self.http.request(uri, "PUT")
+        (response, content) = self.http.request(uri, "PUT", body="foo")
         self.assertEqual(response.status, 200)
-        (response, content) = self.http.request(uri, "PUT")
+        (response, content) = self.http.request(uri, "PUT", body="foo")
         self.assertEqual(response.status, 412)
 
     def testUpdateUsesCachedETagAndOCMethod(self):
@@ -787,7 +787,7 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
-        (response, content) = self.http.request(uri, "PUT", headers={'if-match': 'fred'})
+        (response, content) = self.http.request(uri, "PUT", body="foo", headers={'if-match': 'fred'})
         self.assertEqual(response.status, 412)
 
     def testBasicAuth(self):
