@@ -851,7 +851,9 @@ the same interface as FileCache."""
                     raise
             else:
                 content = b""
-                if method != "HEAD":
+                if method == "HEAD":
+                    response.close()
+                else:
                     content = response.read()
                 response = Response(response)
                 if method != "HEAD":
