@@ -1,5 +1,9 @@
 from distutils.core import setup
+import sys
+
+pkgdir = {'': 'python%s' % sys.version_info[0]}
 VERSION = '0.5.0'
+
 setup(name='httplib2',
         version=VERSION, 
         author='Joe Gregorio',
@@ -52,6 +56,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 **Unit Tested**
   A large and growing set of unit tests.
         """,
+        package_dir=pkgdir,
         packages=['httplib2'],
         classifiers=[
         'Development Status :: 4 - Beta',
