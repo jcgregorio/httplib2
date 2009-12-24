@@ -337,6 +337,18 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
                 if key not in ['status','content-encoding','transfer-encoding']:
                     info[key] = value
 
+            # Add annotations to the cache to indicate what headers
+            # are variant for this request.
+            vary = response_headers.get('vary', None)
+            if vary:
+                vary_headers = vary.lower().replace(' ', '').split(',')
+                for header in vary_headers:
+                    key = '-varied-%s' % header
+                    try:
+                        info[key] = request_headers[header]
+                    except KeyError:
+                        pass
+
             status = response_headers.status
             if status == 304:
                 status = 200
@@ -1022,6 +1034,18 @@ a string that contains the response entity body.
             if method not in ["GET", "HEAD"] and self.cache and cachekey:
                 # RFC 2616 Section 13.10
                 self.cache.delete(cachekey)
+
+            # Check the vary header in the cache to see if this request
+            # matches what varies in the cache.
+            if method in ['GET', 'HEAD'] and 'vary' in info:
+                vary = info['vary']
+                vary_headers = vary.lower().replace(' ', '').split(',')
+                for header in vary_headers:
+                    key = '-varied-%s' % header
+                    value = info[key]
+                    if headers.get(header, '') != value:
+                            cached_value = None
+                            break
 
             if cached_value and method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
                 if '-x-permanent-redirect-url' in info:
