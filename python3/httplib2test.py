@@ -571,6 +571,76 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 410)
 
+    def testVaryHeaderSimple(self):
+        """
+        RFC 2616 13.6
+        When the cache receives a subsequent request whose Request-URI
+        specifies one or more cache entries including a Vary header field,
+        the cache MUST NOT use such a cache entry to construct a response
+        to the new request unless all of the selecting request-headers
+        present in the new request match the corresponding stored
+        request-headers in the original request.
+        """
+        # test that the vary header is sent
+        uri = urllib.parse.urljoin(base, "vary/accept.asis")
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertTrue('vary' in response)
+
+        # get the resource again, from the cache since accept header in this
+        # request is the same as the request
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True, msg="Should be from cache")
+
+        # get the resource again, not from cache since Accept headers does not match
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/html'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False, msg="Should not be from cache")
+
+        # get the resource again, without any Accept header, so again no match
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False, msg="Should not be from cache")
+
+    def testNoVary(self):
+        # when there is no vary, a different Accept header (e.g.) should not
+        # impact if the cache is used
+        # test that the vary header is not sent
+        uri = urllib.parse.urljoin(base, "vary/no-vary.asis")
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertFalse('vary' in response)
+
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True, msg="Should be from cache")
+        
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/html'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True, msg="Should be from cache")
+
+    def testVaryHeaderDouble(self):
+        uri = urllib.parse.urljoin(base, "vary/accept-double.asis")
+        (response, content) = self.http.request(uri, "GET", headers={
+            'Accept': 'text/plain', 'Accept-Language': 'da, en-gb;q=0.8, en;q=0.7'})
+        self.assertEqual(response.status, 200)
+        self.assertTrue('vary' in response)
+
+        # we are from cache
+        (response, content) = self.http.request(uri, "GET", headers={
+            'Accept': 'text/plain', 'Accept-Language': 'da, en-gb;q=0.8, en;q=0.7'})
+        self.assertEqual(response.fromcache, True, msg="Should be from cache")
+
+        (response, content) = self.http.request(uri, "GET", headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False)
+
+        # get the resource again, not from cache, varied headers don't match exact
+        (response, content) = self.http.request(uri, "GET", headers={'Accept-Language': 'da'})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False, msg="Should not be from cache")
+
     def testHeadGZip(self):
         # Test that we don't try to decompress a HEAD response 
         uri = urllib.parse.urljoin(base, "gzip/final-destination.txt")
