@@ -3,3 +3,4 @@ build
 dist
 upload.py
 **.pyc
+.cache
