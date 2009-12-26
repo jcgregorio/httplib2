@@ -211,13 +211,6 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.fromcache, True)
         self.assertEqual(response.status, 200)
 
-    def testGetOnlyIfCachedCacheMissCache(self):
-        # Test that can do a GET with cache and 'only-if-cached'
-        uri = urllib.parse.urljoin(base, "304/test_etag.txt")
-        (response, content) = self.http.request(uri, "GET", headers={'cache-control': 'only-if-cached'})
-        self.assertEqual(response.fromcache, False)
-        self.assertEqual(response.status, 504)
-
     def testGetOnlyIfCachedCacheMiss(self):
         # Test that can do a GET with no cache with 'only-if-cached'
         uri = urllib.parse.urljoin(base, "304/test_etag.txt")
