@@ -955,6 +955,8 @@ the same interface as FileCache."""
 
         return (response, content)
 
+    def _normalize_headers(self, headers):
+        return _normalize_headers(headers)
 
 # Need to catch and rebrand some exceptions
 # Then need to optionally turn all exceptions into status codes
@@ -986,7 +988,7 @@ a string that contains the response entity body.
             if headers is None:
                 headers = {}
             else:
-                headers = _normalize_headers(headers)
+                headers = self._normalize_headers(headers)
 
             if not headers.has_key('user-agent'):
                 headers['user-agent'] = "Python-httplib2/%s" % __version__
