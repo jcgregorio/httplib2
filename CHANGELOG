@@ -1,3 +1,22 @@
+0.6.0
+
+   The following issues have been addressed:
+
+    #51 - Failure to handle server legitimately closing connection before request body is fully sent	
+    #77 - Duplicated caching test	 
+    #65 - Transform _normalize_headers into a method of Http class
+    #45 - Vary header	  
+    #73 - All files in Mercurial are executable	 
+    #81 - Have a useful .hgignore	 	 
+    #78 - Add release tags to the Mercurial repository		 
+    #67 - HEAD requests cause next request to be retried	  
+
+   Mostly bug fixes, the big enhancement is the addition of proper Vary: header
+   handling. Thanks to Chris Dent for that change.
+
+   The other big change is the build process for distributions so that both python2 and python3
+   are included in the same .tar.gz/.zip file.
+
 0.5.0
 
    Added Python 3 support
