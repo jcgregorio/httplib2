@@ -8,6 +8,10 @@ VERSION = $(shell python setup.py --version)
 DST = dist/httplib2-$(VERSION)
 
 release:
+	-find . -name "*.pyc" | xargs rm 
+	-find . -name "*.orig" | xargs rm 
+	-rm -rf python2/.cache
+	-rm -rf python3/.cache
 	-mkdir dist
 	-rm -rf dist/httplib2-$(VERSION)
 	-rm dist/httplib2-$(VERSION).tar.gz
