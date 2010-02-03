@@ -730,6 +730,7 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                     self.sock.setproxy(*self.proxy_info.astuple())
                 else:
                     self.sock = socket.socket(af, socktype, proto)
+                    self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 # Different from httplib: support timeouts.
                 if has_timeout(self.timeout):
                     self.sock.settimeout(self.timeout)
@@ -767,6 +768,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
             sock.setproxy(*self.proxy_info.astuple())
         else:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         
         if has_timeout(self.timeout):
             sock.settimeout(self.timeout)
