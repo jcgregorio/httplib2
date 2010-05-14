@@ -41,6 +41,7 @@ import copy
 import calendar
 import time
 import random
+import errno
 # remove depracated warning in python2.6
 try:
     from hashlib import sha1 as _sha, md5 as _md5
@@ -865,7 +866,10 @@ the same interface as FileCache."""
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
-            except (socket.error, httplib.HTTPException):
+            except socket.error, e:
+                if e.errno == errno.ECONNREFUSED: # Connection refused
+                    raise
+            except httplib.HTTPException:
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
                 pass
