@@ -636,6 +636,19 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, False, msg="Should not be from cache")
 
+    def testVaryUnusedHeader(self):
+        # A header's value is not considered to vary if it's not used at all.
+        uri = urlparse.urljoin(base, "vary/unused-header.asis")
+        (response, content) = self.http.request(uri, "GET", headers={
+            'Accept': 'text/plain'})
+        self.assertEqual(response.status, 200)
+        self.assertTrue(response.has_key('vary'))
+
+        # we are from cache
+        (response, content) = self.http.request(uri, "GET", headers={
+            'Accept': 'text/plain',})
+        self.assertEqual(response.fromcache, True, msg="Should be from cache")
+
 
     def testHeadGZip(self):
         # Test that we don't try to decompress a HEAD response 
