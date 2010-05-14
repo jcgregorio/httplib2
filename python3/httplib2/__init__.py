@@ -43,6 +43,7 @@ import copy
 import calendar
 import time
 import random
+import errno
 from hashlib import sha1 as _sha, md5 as _md5
 import hmac
 from gettext import gettext as _
@@ -850,7 +851,11 @@ the same interface as FileCache."""
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
-            except (socket.error, httplib.HTTPException):
+            except socket.error as e:
+                errno_ = (e.args[0].errno if isinstance(e.args[0], socket.error) else e.errno)
+                if errno_ == errno.ECONNREFUSED: # Connection refused
+                    raise
+            except httplib.HTTPException:
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
                 pass
