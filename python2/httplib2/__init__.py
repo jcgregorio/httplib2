@@ -54,10 +54,7 @@ import hmac
 from gettext import gettext as _
 import socket
 
-try:
-    import socks
-except ImportError:
-    socks = None
+from httplib2 import socks
 
 # Build the appropriate socket wrapper for ssl
 try:
@@ -707,7 +704,7 @@ p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_po
         self.proxy_user, self.proxy_pass)
 
   def isgood(self):
-    return socks and (self.proxy_host != None) and (self.proxy_port != None)
+    return (self.proxy_host != None) and (self.proxy_port != None)
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
