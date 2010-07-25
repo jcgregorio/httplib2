@@ -8,7 +8,8 @@ from httplib2.test import miniserver
 
 class HttpSmokeTest(unittest.TestCase):
     def setUp(self):
-        self.httpd, self.port = miniserver.start_server(miniserver.ThisDirHandler)
+        self.httpd, self.port = miniserver.start_server(
+            miniserver.ThisDirHandler)
 
     def tearDown(self):
         self.httpd.shutdown()
