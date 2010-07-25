@@ -22,6 +22,7 @@ StartServers 1
 LogLevel Info
 """
 
+
 class FunctionalProxyHttpTest(unittest.TestCase):
     def setUp(self):
         if not socks:
@@ -44,8 +45,7 @@ class FunctionalProxyHttpTest(unittest.TestCase):
         our_cfg = tinyproxy_cfg % {'user': os.getlogin(),
                                    'pidfile': self.pidfile,
                                    'port': self.proxyport,
-                                   'logfile': self.logfile
-                                 }
+                                   'logfile': self.logfile}
         f.write(our_cfg)
         f.close()
         try:
@@ -53,7 +53,6 @@ class FunctionalProxyHttpTest(unittest.TestCase):
             ret = subprocess.call(['tinyproxy', '-c', self.conffile])
             self.assertEqual(0, ret)
         except OSError, e:
-            # sign you've been doing VCS too long: you recognize errno 2 as ENOENT.
             if e.errno == errno.ENOENT:
                 raise nose.SkipTest('tinyproxy not available')
             raise
