@@ -41,6 +41,10 @@ mainly to merge bug fixes found in Sourceforge
 """
 
 import socket
+
+if getattr(socket, 'socket', None) is None:
+    raise ImportError('socket.socket missing, proxy support unusable')
+
 import struct
 import sys
 
