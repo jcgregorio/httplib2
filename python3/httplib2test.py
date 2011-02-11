@@ -14,16 +14,16 @@ __license__ = "MIT"
 __history__ = """ """
 __version__ = "0.2 ($Rev: 118 $)"
 
-
-import sys
-import unittest
+import base64
 import http.client
 import httplib2
-import os
-import urllib.parse
-import time
-import base64
 import io
+import os
+import socket
+import sys
+import time
+import unittest
+import urllib.parse
 
 # The test resources base uri
 base = 'http://bitworking.org/projects/httplib2/test/'
@@ -162,6 +162,22 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request("http://fred.bitworking.org/")
         self.assertEqual(response['content-type'], 'text/plain')
         self.assertTrue(content.startswith(b"Unable to find"))
+        self.assertEqual(response.status, 400)
+
+    def testGetConnectionRefused(self):
+        self.http.force_exception_to_status_code = False
+        try:
+            self.http.request("http://localhost:7777/")
+            self.fail("An socket.error exception must be thrown on Connection Refused.")
+        except socket.error:
+            pass
+
+        # Now test with exceptions turned off
+        self.http.force_exception_to_status_code = True
+
+        (response, content) = self.http.request("http://localhost:7777/")
+        self.assertEqual(response['content-type'], 'text/plain')
+        self.assertTrue(b"Connection refused" in content)
         self.assertEqual(response.status, 400)
 
     def testGetIRI(self):

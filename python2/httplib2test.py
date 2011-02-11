@@ -15,15 +15,16 @@ __history__ = """ """
 __version__ = "0.1 ($Rev: 118 $)"
 
 
-import sys
-import unittest
+import StringIO
+import base64
 import httplib
 import httplib2
 import os
-import urlparse
+import socket
+import sys
 import time
-import base64
-import StringIO
+import unittest
+import urlparse
 
 # Python 2.3 support
 if not hasattr(unittest.TestCase, 'assertTrue'):
@@ -164,6 +165,22 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request("http://fred.bitworking.org/")
         self.assertEqual(response['content-type'], 'text/plain')
         self.assertTrue(content.startswith("Unable to find"))
+        self.assertEqual(response.status, 400)
+
+    def testGetConnectionRefused(self):
+        self.http.force_exception_to_status_code = False
+        try:
+          self.http.request("http://localhost:7777/")
+          self.fail("An socket.error exception must be thrown on Connection Refused.")
+        except socket.error:
+            pass
+
+        # Now test with exceptions turned off
+        self.http.force_exception_to_status_code = True
+
+        (response, content) = self.http.request("http://localhost:7777/")
+        self.assertEqual(response['content-type'], 'text/plain')
+        self.assertTrue("Connection refused" in content)
         self.assertEqual(response.status, 400)
 
     def testGetIRI(self):

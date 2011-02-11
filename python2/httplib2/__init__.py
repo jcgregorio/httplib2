@@ -871,7 +871,12 @@ the same interface as FileCache."""
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
             except socket.error, e:
-                if e.errno == errno.ECONNREFUSED: # Connection refused
+                err = 0
+                if hasattr(e, 'args'):
+                    err = getattr(e, 'args')[0]
+                else:
+                    err = e.errno
+                if err == errno.ECONNREFUSED: # Connection refused
                     raise
             except httplib.HTTPException:
                 # Just because the server closed the connection doesn't apparently mean
