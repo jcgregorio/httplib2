@@ -876,6 +876,18 @@ the same interface as FileCache."""
             except httplib.HTTPException:
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
+                if conn.sock is None:
+                    if i == 0:
+                        conn.close()
+                        conn.connect()
+                        continue
+                    else:
+                        conn.close()
+                        raise
+                if i == 0:
+                    conn.close()
+                    conn.connect()
+                    continue
                 pass
             try:
                 response = conn.getresponse()
