@@ -855,7 +855,19 @@ the same interface as FileCache."""
                 errno_ = (e.args[0].errno if isinstance(e.args[0], socket.error) else e.errno)
                 if errno_ == errno.ECONNREFUSED: # Connection refused
                     raise
-            except httplib.HTTPException:
+            except http.client.HTTPException:
+                if conn.sock is None:
+                    if i == 0:
+                        conn.close()
+                        conn.connect()
+                        continue
+                    else:
+                        conn.close()
+                        raise
+                if i == 0:
+                    conn.close()
+                    conn.connect()
+                    continue
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
                 pass
