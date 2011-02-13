@@ -145,6 +145,24 @@ class HttpTest(unittest.TestCase):
         self.http = httplib2.Http(cacheDirName)
         self.http.clear_credentials()
 
+    def testIPv6NoSSL(self):
+        try:
+          self.http.request("http://[::1]/")
+        except socket.gaierror:
+          self.fail("should get the address family right for IPv6")
+        except socket.error:
+          # Even if IPv6 isn't installed on a machine it should just raise socket.error
+          pass
+
+    def testIPv6SSL(self):
+        try:
+          self.http.request("https://[::1]/")
+        except socket.gaierror:
+          self.fail("should get the address family right for IPv6")
+        except socket.error:
+          # Even if IPv6 isn't installed on a machine it should just raise socket.error
+          pass
+
     def testConnectionType(self):
         self.http.force_exception_to_status_code = False 
         response, content = self.http.request("http://bitworking.org", connection_type=_MyHTTPConnection)
