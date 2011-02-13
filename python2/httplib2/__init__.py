@@ -768,17 +768,33 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
     def connect(self):
         "Connect to a host on a given (SSL) port."
 
-        if self.proxy_info and self.proxy_info.isgood():
-            sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setproxy(*self.proxy_info.astuple())
-        else:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        msg = "getaddrinfo returns an empty list"
+        for family, socktype, proto, canonname, sockaddr in socket.getaddrinfo(
+            self.host, self.port, 0, socket.SOCK_STREAM):
+            try:
+                if self.proxy_info and self.proxy_info.isgood():
+                    sock = socks.socksocket(family, socktype, proto)
+                    sock.setproxy(*self.proxy_info.astuple())
+                else:
+                    sock = socket.socket(family, socktype, proto)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
-        if has_timeout(self.timeout):
-            sock.settimeout(self.timeout)
-        sock.connect((self.host, self.port))
-        self.sock =_ssl_wrap_socket(sock, self.key_file, self.cert_file)
+                if has_timeout(self.timeout):
+                    sock.settimeout(self.timeout)
+                sock.connect((self.host, self.port))
+                self.sock =_ssl_wrap_socket(sock, self.key_file, self.cert_file)
+                if self.debuglevel > 0:
+                    print "connect: (%s, %s)" % (self.host, self.port)
+            except socket.error, msg:
+              if self.debuglevel > 0:
+                  print 'connect fail:', (self.host, self.port)
+              if self.sock:
+                  self.sock.close()
+              self.sock = None
+              continue
+            break
+        if not self.sock:
+          raise socket.error, msg
 
 
 
