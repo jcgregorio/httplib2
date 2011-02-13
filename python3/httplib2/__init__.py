@@ -848,6 +848,8 @@ the same interface as FileCache."""
         for i in range(2):
             try:
                 conn.request(method, request_uri, body, headers)
+            except socket.timeout:
+                raise
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
