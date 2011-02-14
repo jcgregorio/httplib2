@@ -1040,7 +1040,7 @@ a string that contains the response entity body.
                     conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout, proxy_info=self.proxy_info)
                 conn.set_debuglevel(debuglevel)
 
-            if method in ["GET", "HEAD"] and 'range' not in headers and 'accept-encoding' not in headers:
+            if 'range' not in headers and 'accept-encoding' not in headers:
                 headers['accept-encoding'] = 'gzip, deflate'
 
             info = email.message.Message()
