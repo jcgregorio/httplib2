@@ -1374,6 +1374,13 @@ class HttpPrivateTest(unittest.TestCase):
         digest = res['digest']
         self.assertEqual('myrealm', digest['realm'])
 
+    def testParseWWWAuthenticateMalformed(self):
+        try:
+          res = httplib2._parse_www_authenticate({'www-authenticate':'OAuth "Facebook Platform" "invalid_token" "Invalid OAuth access token."'})
+          self.fail("should raise an exception")
+        except httplib2.MalformedHeader:
+          pass
+
     def testDigestObject(self):
         credentials = ('joe', 'password')
         host = None
