@@ -358,7 +358,7 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
             if status == 304:
                 status = 200
 
-            status_header = 'status: %d\r\n' % response_headers.status
+            status_header = 'status: %d\r\n' % status
 
             header_str = info.as_string()
 
