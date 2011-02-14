@@ -699,6 +699,13 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(int(response['content-length']), len(b"This is the final destination.\n"))
         self.assertEqual(content, b"This is the final destination.\n")
 
+    def testPostAndGZipResponse(self):
+        uri = urllib.parse.urljoin(base, "gzip/post.cgi")
+        (response, content) = self.http.request(uri, "POST", body=" ")
+        self.assertEqual(response.status, 200)
+        self.assertFalse('content-encoding' in response)
+        self.assertTrue('-content-encoding' in response)
+
     def testGetGZipFailure(self):
         # Test that we raise a good exception when the gzip fails
         self.http.force_exception_to_status_code = False 
