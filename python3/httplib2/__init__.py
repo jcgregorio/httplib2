@@ -89,6 +89,7 @@ class FailedToDecompressContent(HttpLib2ErrorWithResponse): pass
 class UnimplementedDigestAuthOptionError(HttpLib2ErrorWithResponse): pass
 class UnimplementedHmacDigestAuthOptionError(HttpLib2ErrorWithResponse): pass
 
+class MalformedHeader(HttpLib2Error): pass
 class RelativeURIError(HttpLib2Error): pass
 class ServerNotFoundError(HttpLib2Error): pass
 
@@ -212,25 +213,28 @@ def _parse_www_authenticate(headers, headername='www-authenticate'):
     per auth_scheme."""
     retval = {}
     if headername in headers:
-        authenticate = headers[headername].strip()
-        www_auth = USE_WWW_AUTH_STRICT_PARSING and WWW_AUTH_STRICT or WWW_AUTH_RELAXED
-        while authenticate:
-            # Break off the scheme at the beginning of the line
-            if headername == 'authentication-info':
-                (auth_scheme, the_rest) = ('digest', authenticate)                
-            else:
-                (auth_scheme, the_rest) = authenticate.split(" ", 1)
-            # Now loop over all the key value pairs that come after the scheme, 
-            # being careful not to roll into the next scheme
-            match = www_auth.search(the_rest)
-            auth_params = {}
-            while match:
-                if match and len(match.groups()) == 3:
-                    (key, value, the_rest) = match.groups()
-                    auth_params[key.lower()] = UNQUOTE_PAIRS.sub(r'\1', value) # '\\'.join([x.replace('\\', '') for x in value.split('\\\\')])
-                match = www_auth.search(the_rest)
-            retval[auth_scheme.lower()] = auth_params
-            authenticate = the_rest.strip()
+        try:
+          authenticate = headers[headername].strip()
+          www_auth = USE_WWW_AUTH_STRICT_PARSING and WWW_AUTH_STRICT or WWW_AUTH_RELAXED
+          while authenticate:
+              # Break off the scheme at the beginning of the line
+              if headername == 'authentication-info':
+                  (auth_scheme, the_rest) = ('digest', authenticate)                
+              else:
+                  (auth_scheme, the_rest) = authenticate.split(" ", 1)
+              # Now loop over all the key value pairs that come after the scheme, 
+              # being careful not to roll into the next scheme
+              match = www_auth.search(the_rest)
+              auth_params = {}
+              while match:
+                  if match and len(match.groups()) == 3:
+                      (key, value, the_rest) = match.groups()
+                      auth_params[key.lower()] = UNQUOTE_PAIRS.sub(r'\1', value) # '\\'.join([x.replace('\\', '') for x in value.split('\\\\')])
+                  match = www_auth.search(the_rest)
+              retval[auth_scheme.lower()] = auth_params
+              authenticate = the_rest.strip()
+        except ValueError:
+          raise MalformedHeader("WWW-Authenticate")
     return retval
 
 
