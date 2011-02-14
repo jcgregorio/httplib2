@@ -26,6 +26,7 @@ import time
 import unittest
 import urlparse
 
+
 # Python 2.3 support
 if not hasattr(unittest.TestCase, 'assertTrue'):
     unittest.TestCase.assertTrue = unittest.TestCase.failUnless
@@ -333,6 +334,14 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.previous.status, 301)
         self.assertEqual(response.previous.fromcache, True)
 
+    def testHead301(self):
+        # Test that we automatically follow 301 redirects
+        uri = urlparse.urljoin(base, "301/onestep.asis")
+        destination = urlparse.urljoin(base, "302/final-destination.txt")
+        (response, content) = self.http.request(uri, "HEAD")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.previous.status, 301)
+        self.assertEqual(response.previous.fromcache, False)
 
     def testGet301NoRedirect(self):
         # Test that we automatically follow 301 redirects
