@@ -330,6 +330,13 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.previous.status, 301)
         self.assertEqual(response.previous.fromcache, True)
 
+    def testHead301(self):
+        # Test that we automatically follow 301 redirects
+        uri = urllib.parse.urljoin(base, "301/onestep.asis")
+        (response, content) = self.http.request(uri, "HEAD")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.previous.status, 301)
+        self.assertEqual(response.previous.fromcache, False)
 
     def testGet301NoRedirect(self):
         # Test that we automatically follow 301 redirects

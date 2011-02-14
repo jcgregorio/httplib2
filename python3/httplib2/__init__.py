@@ -967,7 +967,9 @@ the same interface as FileCache."""
                         old_response = copy.deepcopy(response)
                         if 'content-location' not in old_response:
                             old_response['content-location'] = absolute_uri 
-                        redirect_method = ((response.status == 303) and (method not in ["GET", "HEAD"])) and "GET" or method
+                        redirect_method = method
+                        if response.status == 303:
+                          redirect_method = "GET"
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
                 else:
