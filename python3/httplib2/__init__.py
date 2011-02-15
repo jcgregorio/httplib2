@@ -702,7 +702,15 @@ p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_po
 
 
 class HTTPConnectionWithTimeout(http.client.HTTPConnection):
-    """HTTPConnection subclass that supports timeouts"""
+    """HTTPConnection subclass that supports timeouts
+
+    HTTPConnection subclass that supports timeouts
+
+    All timeouts are in seconds. If None is passed for timeout then
+    Python's default timeout for sockets will be used. See for example
+    the docs of socket.setdefaulttimeout():
+    http://docs.python.org/library/socket.html#socket.setdefaulttimeout
+    """
 
     def __init__(self, host, port=None, strict=None, timeout=None, proxy_info=None):
         http.client.HTTPConnection.__init__(self, host, port, strict, timeout)
@@ -743,7 +751,14 @@ class HTTPConnectionWithTimeout(http.client.HTTPConnection):
             raise socket.error(msg)
 
 class HTTPSConnectionWithTimeout(http.client.HTTPSConnection):
-    "This class allows communication via SSL."
+    """
+    This class allows communication via SSL.
+
+    All timeouts are in seconds. If None is passed for timeout then
+    Python's default timeout for sockets will be used. See for example
+    the docs of socket.setdefaulttimeout():
+    http://docs.python.org/library/socket.html#socket.setdefaulttimeout
+    """
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None):
