@@ -1017,7 +1017,7 @@ and more.
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
                 else:
-                    raise RedirectLimit( _("Redirected more times than rediection_limit allows."), response, content)
+                    raise RedirectLimit("Redirected more times than rediection_limit allows.", response, content)
             elif response.status in [200, 203] and method == "GET":
                 # Don't cache 206's since we aren't going to handle byte range requests
                 if not response.has_key('content-location'):
@@ -1136,6 +1136,8 @@ a string that contains the response entity body.
             if cached_value and method in ["GET", "HEAD"] and self.cache and 'range' not in headers:
                 if info.has_key('-x-permanent-redirect-url'):
                     # Should cached permanent redirects be counted in our redirection count? For now, yes.
+                    if redirections <= 0:
+                      raise RedirectLimit("Redirected more times than rediection_limit allows.", {}, "")
                     (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
                     response.previous = Response(info)
                     response.previous.fromcache = True

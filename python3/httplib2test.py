@@ -395,7 +395,7 @@ class HttpTest(unittest.TestCase):
             self.fail("Threw wrong kind of exception ")
 
         # Re-run the test with out the exceptions
-        self.http.force_exception_to_status_code = True 
+        self.http.force_exception_to_status_code = True
 
         (response, content) = self.http.request(uri, "GET", redirections = 1)
         self.assertEqual(response.status, 500)
