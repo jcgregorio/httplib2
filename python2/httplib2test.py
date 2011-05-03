@@ -430,10 +430,10 @@ class HttpTest(unittest.TestCase):
         self.assertTrue(response.reason.startswith("Redirected but"))
         self.assertEqual("302", response['status'])
         self.assertTrue(content.startswith("This is content"))
- 
+
     def testGet302ViaHttps(self):
         # Google always redirects to http://google.com
-        (response, content) = self.http.request("https://google.com", "GET")
+        (response, content) = self.http.request("https://www.google.com", "GET")
         self.assertEqual(200, response.status)
         self.assertEqual(302, response.previous.status)
 
