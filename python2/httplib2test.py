@@ -882,7 +882,7 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.fromcache, False)
 
     def testUpdateUsesCachedETag(self):
-        # Test that we natively support http://www.w3.org/1999/04/Editing/ 
+        # Test that we natively support http://www.w3.org/1999/04/Editing/
         uri = urlparse.urljoin(base, "conditional-updates/test.cgi")
 
         (response, content) = self.http.request(uri, "GET")
@@ -895,6 +895,22 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         (response, content) = self.http.request(uri, "PUT", body="foo")
         self.assertEqual(response.status, 412)
+
+    def testUpdatePatchUsesCachedETag(self):
+        # Test that we natively support http://www.w3.org/1999/04/Editing/
+        uri = urlparse.urljoin(base, "conditional-updates/test.cgi")
+
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, False)
+        (response, content) = self.http.request(uri, "GET")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.fromcache, True)
+        (response, content) = self.http.request(uri, "PATCH", body="foo")
+        self.assertEqual(response.status, 200)
+        (response, content) = self.http.request(uri, "PATCH", body="foo")
+        self.assertEqual(response.status, 412)
+
 
     def testUpdateUsesCachedETagAndOCMethod(self):
         # Test that we natively support http://www.w3.org/1999/04/Editing/ 

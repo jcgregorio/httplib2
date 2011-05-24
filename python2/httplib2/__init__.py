@@ -865,7 +865,7 @@ and more.
 
         # Which HTTP methods do we apply optimistic concurrency to, i.e.
         # which methods get an "if-match:" etag header added to them.
-        self.optimistic_concurrency_methods = ["PUT"]
+        self.optimistic_concurrency_methods = ["PUT", "PATCH"]
 
         # If 'follow_redirects' is True, and this is set to True then
         # all redirecs are followed, including unsafe ones.
