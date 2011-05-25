@@ -813,6 +813,92 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         if not self.sock:
           raise socket.error, msg
 
+SCHEME_TO_CONNECTION = {
+    'http': HTTPConnectionWithTimeout,
+    'https': HTTPSConnectionWithTimeout
+    }
+
+# Use a different connection object for Google App Engine
+try:
+  from google.appengine.api.urlfetch import fetch
+  from google.appengine.api.urlfetch import InvalidURLError
+  from google.appengine.api.urlfetch import DownloadError
+  from google.appengine.api.urlfetch import ResponseTooLargeError
+  import logging
+
+
+  class ResponseDict(dict):
+    """Is a dictionary that also has a read() method, so
+    that it can pass itself off as an httlib.HTTPResponse()."""
+    def read(self):
+      pass
+
+
+  class AppEngineHttpConnection(object):
+    """Emulates an httplib.HTTPConnection object, but actually uses the Google
+    App Engine urlfetch library. This allows the timeout to be properly used on
+    Google App Engine, and avoids using httplib, which on Google App Engine is
+    just another wrapper around urlfetch.
+    """
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None, proxy_info=None):
+      self.host = host
+      self.port = port
+      self.timeout = timeout
+      if key_file or cert_file or proxy_info:
+        raise NotSupportedOnThisPlatform()
+      self.response = None
+      self.scheme = 'http'
+
+    def request(self, method, url, body, headers):
+      # Calculate the absolute URI, which fetch requires
+      netloc = self.host
+      if self.port:
+        netloc = '%s:%s' % (self.host, self.port)
+      absolute_uri = '%s://%s%s' % (self.scheme, netloc, url)
+      try:
+        response = fetch(absolute_uri, payload=body, method=method, headers=headers,
+            allow_truncated=False, follow_redirects=False,
+            deadline=self.timeout, validate_certificate=True)
+        self.response = ResponseDict(response.headers)
+        self.response['status'] = response.status_code
+        setattr(self.response, 'read', lambda : response.content)
+
+      # Make sure the exceptions raised match the exceptions expected.
+      except InvalidURLError:
+        raise socket.gaierror('')
+      except (DownloadError, ResponseTooLargeError, SSLCertificateError):
+        raise httplib.HTTPException()
+
+    def getresponse(self):
+      return self.response
+
+    def set_debuglevel(self, level):
+      pass
+
+    def connect(self):
+      pass
+
+    def close(self):
+      pass
+
+
+  class AppEngineHttpsConnection(object):
+    """Same as AppEngineHttpConnection, but for HTTPS URIs."""
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None, proxy_info=None):
+      AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file,
+          strict, timeout, proxy_info)
+      self.scheme = 'https'
+
+  # Update the connection classes to use the Googel App Engine specific ones.
+  SCHEME_TO_CONNECTION = {
+      'http': AppEngineHttpConnection,
+      'https': AppEngineHttpsConnection
+      }
+
+except ImportError:
+  pass
 
 
 class Http(object):
@@ -1077,7 +1163,7 @@ a string that contains the response entity body.
                 conn = self.connections[conn_key]
             else:
                 if not connection_type:
-                    connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
+                  connection_type = SCHEME_TO_CONNECTION[scheme]
                 certs = list(self.certificates.iter(authority))
                 if scheme == 'https' and certs:
                     conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0],
