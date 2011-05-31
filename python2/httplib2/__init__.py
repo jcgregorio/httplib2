@@ -1148,7 +1148,7 @@ a string that contains the response entity body.
                 headers = self._normalize_headers(headers)
 
             if not headers.has_key('user-agent'):
-                headers['user-agent'] = "Python-httplib2/%s" % __version__
+                headers['user-agent'] = "Python-httplib2/%s (gzip)" % __version__
 
             uri = iri2uri(uri)
 
