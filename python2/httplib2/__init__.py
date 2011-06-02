@@ -883,11 +883,11 @@ try:
       pass
 
 
-  class AppEngineHttpsConnection(object):
+  class AppEngineHttpsConnection(AppEngineHttpConnection):
     """Same as AppEngineHttpConnection, but for HTTPS URIs."""
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None):
-      AppEngineHttpsConnection.__init__(self, host, port, key_file, cert_file,
+      AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file,
           strict, timeout, proxy_info)
       self.scheme = 'https'
 
