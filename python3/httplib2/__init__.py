@@ -1046,7 +1046,7 @@ a string that contains the response entity body.
             if len(domain_port) == 2 and domain_port[1] == '443' and scheme == 'http':
                 scheme = 'https'
                 authority = domain_port[0]
-            
+
             conn_key = scheme+":"+authority
             if conn_key in self.connections:
                 conn = self.connections[conn_key]
