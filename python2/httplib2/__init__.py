@@ -932,7 +932,7 @@ and more.
         self.connections = {}
         # The location of the cache, for now a directory
         # where cached responses are held.
-        if cache and isinstance(cache, str):
+        if cache and isinstance(cache, basestring):
             self.cache = FileCache(cache)
         else:
             self.cache = cache
