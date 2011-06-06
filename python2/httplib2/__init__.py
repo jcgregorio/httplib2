@@ -22,7 +22,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Sam Ruby",
     "Louis Nyffenegger"]
 __license__ = "MIT"
-__version__ = "$Rev$"
+__version__ = "0.7.0"
 
 import re
 import sys
