@@ -456,18 +456,22 @@ class HttpTest(unittest.TestCase):
 
         http.add_certificate("akeyfile", "acertfile", "bitworking.org")
         try:
-            (response, content) = http.request("https://bitworking.org", "GET")
-        except:
-            pass
-        self.assertEqual(http.connections["https:bitworking.org"].key_file, "akeyfile")
-        self.assertEqual(http.connections["https:bitworking.org"].cert_file, "acertfile")
+          (response, content) = http.request("https://bitworking.org", "GET")
+        except AttributeError:
+          self.assertEqual(http.connections["https:bitworking.org"].key_file, "akeyfile")
+          self.assertEqual(http.connections["https:bitworking.org"].cert_file, "acertfile")
+        except IOError:
+          # Skip on 3.2
+          pass
 
         try:
             (response, content) = http.request("https://notthere.bitworking.org", "GET")
-        except:
-            pass
-        self.assertEqual(http.connections["https:notthere.bitworking.org"].key_file, None)
-        self.assertEqual(http.connections["https:notthere.bitworking.org"].cert_file, None)
+        except httplib2.ServerNotFoundError:
+          self.assertEqual(http.connections["https:notthere.bitworking.org"].key_file, None)
+          self.assertEqual(http.connections["https:notthere.bitworking.org"].cert_file, None)
+        except IOError:
+          # Skip on 3.2
+          pass
 
 
 
