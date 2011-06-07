@@ -20,6 +20,7 @@ import httplib2
 import io
 import os
 import socket
+import ssl
 import sys
 import time
 import unittest
@@ -117,6 +118,7 @@ class _MyHTTPConnection(object):
         self.port = port
         self.timeout = timeout
         self.log = ""
+        self.sock = None
 
     def set_debuglevel(self, level):
         pass
@@ -473,8 +475,26 @@ class HttpTest(unittest.TestCase):
           # Skip on 3.2
           pass
 
+    def testSslCertValidation(self):
+          # Test that we get an ssl.SSLError when specifying a non-existent CA
+          # certs file.
+          http = httplib2.Http(ca_certs='/nosuchfile')
+          self.assertRaises(IOError,
+                  http.request, "https://www.google.com/", "GET")
 
+          # Test that we get a SSLHandshakeError if we try to access
+          # https://www.google.com, using a CA cert file that doesn't contain
+          # the CA Gogole uses (i.e., simulating a cert that's not signed by a
+          # trusted CA).
+          other_ca_certs = os.path.join(
+                  os.path.dirname(os.path.abspath(httplib2.__file__ )),
+                  "test", "other_cacerts.txt")
+          http = httplib2.Http(ca_certs=other_ca_certs)
+          self.assertRaises(ssl.SSLError,
+            http.request,"https://www.google.com/", "GET")
 
+    def testSniHostnameValidation(self):
+        self.http.request("https://google.com/", method="GET")
 
     def testGet303(self):
         # Do a follow-up GET on a Location: header
@@ -735,20 +755,6 @@ class HttpTest(unittest.TestCase):
         (response, content) = self.http.request(uri, "GET")
         self.assertEqual(response.status, 500)
         self.assertTrue(response.reason.startswith("Content purported"))
-
-    def testTimeout(self):
-        self.http.force_exception_to_status_code = True 
-        uri = urllib.parse.urljoin(base, "timeout/timeout.cgi")
-        try:
-            import socket
-            socket.setdefaulttimeout(1) 
-        except:
-            # Don't run the test if we can't set the timeout
-            return 
-        (response, content) = self.http.request(uri)
-        self.assertEqual(response.status, 408)
-        self.assertTrue(response.reason.startswith("Request Timeout"))
-        self.assertTrue(content.startswith(b"Request Timeout"))
 
     def testIndividualTimeout(self):
         uri = urllib.parse.urljoin(base, "timeout/timeout.cgi")
@@ -1469,11 +1475,11 @@ class HttpPrivateTest(unittest.TestCase):
         # Degenerate case of no headers
         response = {}
         end2end = httplib2._get_end2end_headers(response)
-        self.assertEquals(0, len(end2end))
+        self.assertEqual(0, len(end2end))
 
         # Degenerate case of connection referrring to a header not passed in 
         response = {'connection': 'content-type'}
         end2end = httplib2._get_end2end_headers(response)
-        self.assertEquals(0, len(end2end))
+        self.assertEqual(0, len(end2end))
 
 unittest.main()
