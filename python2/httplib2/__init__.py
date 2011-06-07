@@ -62,9 +62,27 @@ except ImportError:
 # Build the appropriate socket wrapper for ssl
 try:
     import ssl # python 2.6
-    _ssl_wrap_socket = ssl.wrap_socket
+    ssl_SSLError = ssl.SSLError
+    def _ssl_wrap_socket(sock, key_file, cert_file,
+                         disable_validation, ca_certs):
+        if disable_validation:
+            cert_reqs = ssl.CERT_NONE
+        else:
+            cert_reqs = ssl.CERT_REQUIRED
+        # We should be specifying SSL version 3 or TLS v1, but the ssl module
+        # doesn't expose the necessary knobs. So we need to go with the default
+        # of SSLv23.
+        return ssl.wrap_socket(sock, keyfile=key_file, certfile=cert_file,
+                               cert_reqs=cert_reqs, ca_certs=ca_certs)
 except (AttributeError, ImportError):
-    def _ssl_wrap_socket(sock, key_file, cert_file):
+    ssl_SSLError = None
+    def _ssl_wrap_socket(sock, key_file, cert_file,
+                         disable_validation, ca_certs):
+        if not disable_validation:
+            raise CertificateValidationUnsupported(
+                    "SSL certificate validation is not supported without "
+                    "the ssl module installed. To avoid this error, install "
+                    "the ssl module, or explicity disable validation.")
         ssl_sock = socket.ssl(sock, key_file, cert_file)
         return httplib.FakeSocket(sock, ssl_sock)
 
@@ -127,6 +145,13 @@ class MalformedHeader(HttpLib2Error): pass
 class RelativeURIError(HttpLib2Error): pass
 class ServerNotFoundError(HttpLib2Error): pass
 class ProxiesUnavailableError(HttpLib2Error): pass
+class CertificateValidationUnsupported(HttpLib2Error): pass
+class SSLHandshakeError(HttpLib2Error): pass
+class CertificateHostnameMismatch(SSLHandshakeError):
+  def __init__(self, desc, host, cert):
+    HttpLib2Error.__init__(self, desc)
+    self.host = host
+    self.cert = cert
 
 # Open Items:
 # -----------
@@ -149,6 +174,10 @@ class ProxiesUnavailableError(HttpLib2Error): pass
 # Will also honor 301 requests by saving that info and never
 # requesting that URI again.
 DEFAULT_MAX_REDIRECTS = 5
+
+# Default CA certificates file bundled with httplib2.
+CA_CERTS = os.path.join(
+        os.path.dirname(os.path.abspath(__file__ )), "cacerts.txt")
 
 # Which headers are hop-by-hop headers by default
 HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade']
@@ -776,11 +805,68 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
     http://docs.python.org/library/socket.html#socket.setdefaulttimeout
     """
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None, proxy_info=None):
+                 strict=None, timeout=None, proxy_info=None,
+                 ca_certs=None, disable_ssl_certificate_validation=False):
         httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file,
                 cert_file=cert_file, strict=strict)
         self.timeout = timeout
         self.proxy_info = proxy_info
+        if ca_certs is None:
+          ca_certs = CA_CERTS
+        self.ca_certs = ca_certs
+        self.disable_ssl_certificate_validation = \
+                disable_ssl_certificate_validation
+
+    # The following two methods were adapted from https_wrapper.py, released
+    # with the Google Appengine SDK at
+    # http://googleappengine.googlecode.com/svn-history/r136/trunk/python/google/appengine/tools/https_wrapper.py
+    # under the following license:
+    #
+    # Copyright 2007 Google Inc.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    #
+
+    def _GetValidHostsForCert(self, cert):
+        """Returns a list of valid host globs for an SSL certificate.
+
+        Args:
+          cert: A dictionary representing an SSL certificate.
+        Returns:
+          list: A list of valid host globs.
+        """
+        if 'subjectAltName' in cert:
+            return [x[1] for x in cert['subjectAltName']
+                    if x[0].lower() == 'dns']
+        else:
+            return [x[0][1] for x in cert['subject']
+                    if x[0][0].lower() == 'commonname']
+
+    def _ValidateCertificateHostname(self, cert, hostname):
+        """Validates that a given hostname is valid for an SSL certificate.
+
+        Args:
+          cert: A dictionary representing an SSL certificate.
+          hostname: The hostname to test.
+        Returns:
+          bool: Whether or not the hostname is valid for this certificate.
+        """
+        hosts = self._GetValidHostsForCert(cert)
+        for host in hosts:
+            host_re = host.replace('.', '\.').replace('*', '[^.]*')
+            if re.search('^%s$' % (host_re,), hostname, re.I):
+                return True
+            return False
 
     def connect(self):
         "Connect to a host on a given (SSL) port."
@@ -799,9 +885,32 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                 if has_timeout(self.timeout):
                     sock.settimeout(self.timeout)
                 sock.connect((self.host, self.port))
-                self.sock =_ssl_wrap_socket(sock, self.key_file, self.cert_file)
+                self.sock =_ssl_wrap_socket(
+                    sock, self.key_file, self.cert_file,
+                    self.disable_ssl_certificate_validation, self.ca_certs)
                 if self.debuglevel > 0:
                     print "connect: (%s, %s)" % (self.host, self.port)
+                if not self.disable_ssl_certificate_validation:
+                    cert = self.sock.getpeercert()
+                    hostname = self.host.split(':', 0)[0]
+                    if not self._ValidateCertificateHostname(cert, hostname):
+                        raise CertificateHostnameMismatch(
+                            'Server presented certificate that does not match '
+                            'host %s: %s' % (hostname, cert), hostname, cert)
+            except ssl_SSLError, e:
+                if sock:
+                    sock.close()
+                if self.sock:
+                    self.sock.close()
+                self.sock = None
+                # Unfortunately the ssl module doesn't seem to provide any way
+                # to get at more detailed error information, in particular
+                # whether the error is due to certificate validation or
+                # something else (such as SSL protocol mismatch).
+                if e.errno == ssl.SSL_ERROR_SSL:
+                    raise SSLHandshakeError(e)
+                else:
+                    raise
             except socket.error, msg:
               if self.debuglevel > 0:
                   print 'connect fail:', (self.host, self.port)
@@ -824,7 +933,6 @@ try:
   from google.appengine.api.urlfetch import InvalidURLError
   from google.appengine.api.urlfetch import DownloadError
   from google.appengine.api.urlfetch import ResponseTooLargeError
-  import logging
 
 
   class ResponseDict(dict):
@@ -841,14 +949,16 @@ try:
     just another wrapper around urlfetch.
     """
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None, proxy_info=None):
+                 strict=None, timeout=None, proxy_info=None, ca_certs=None,
+                 disable_certificate_validation=False):
       self.host = host
       self.port = port
       self.timeout = timeout
-      if key_file or cert_file or proxy_info:
+      if key_file or cert_file or proxy_info or ca_certs:
         raise NotSupportedOnThisPlatform()
       self.response = None
       self.scheme = 'http'
+      self.validate_certificate = not disable_certificate_validation
 
     def request(self, method, url, body, headers):
       # Calculate the absolute URI, which fetch requires
@@ -857,9 +967,10 @@ try:
         netloc = '%s:%s' % (self.host, self.port)
       absolute_uri = '%s://%s%s' % (self.scheme, netloc, url)
       try:
-        response = fetch(absolute_uri, payload=body, method=method, headers=headers,
-            allow_truncated=False, follow_redirects=False,
-            deadline=self.timeout, validate_certificate=True)
+        response = fetch(absolute_uri, payload=body, method=method,
+            headers=headers, allow_truncated=False, follow_redirects=False,
+            deadline=self.timeout,
+            validate_certificate=self.validate_certificate)
         self.response = ResponseDict(response.headers)
         self.response['status'] = response.status_code
         setattr(self.response, 'read', lambda : response.content)
@@ -914,7 +1025,8 @@ class Http(object):
 
 and more.
     """
-    def __init__(self, cache=None, timeout=None, proxy_info=None):
+    def __init__(self, cache=None, timeout=None, proxy_info=None,
+                 ca_certs=None, disable_ssl_certificate_validation=False):
         """
         The value of proxy_info is a ProxyInfo instance.
 
@@ -926,8 +1038,19 @@ and more.
         then Python's default timeout for sockets will be used. See
         for example the docs of socket.setdefaulttimeout():
         http://docs.python.org/library/socket.html#socket.setdefaulttimeout
+
+        ca_certs is the path of a file containing root CA certificates for SSL
+        server certificate validation.  By default, a CA cert file bundled with
+        httplib2 is used.
+
+        If disable_ssl_certificate_validation is true, SSL cert validation will
+        not be performed.
         """
         self.proxy_info = proxy_info
+        self.ca_certs = ca_certs
+        self.disable_ssl_certificate_validation = \
+                disable_ssl_certificate_validation
+
         # Map domain name to an httplib connection
         self.connections = {}
         # The location of the cache, for now a directory
@@ -992,12 +1115,17 @@ and more.
     def _conn_request(self, conn, request_uri, method, body, headers):
         for i in range(2):
             try:
+                if conn.sock is None:
+                  conn.connect()
                 conn.request(method, request_uri, body, headers)
             except socket.timeout:
                 raise
             except socket.gaierror:
                 conn.close()
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
+            except ssl_SSLError:
+                conn.close()
+                raise
             except socket.error, e:
                 err = 0
                 if hasattr(e, 'args'):
@@ -1165,11 +1293,26 @@ a string that contains the response entity body.
                 if not connection_type:
                   connection_type = SCHEME_TO_CONNECTION[scheme]
                 certs = list(self.certificates.iter(authority))
-                if scheme == 'https' and certs:
-                    conn = self.connections[conn_key] = connection_type(authority, key_file=certs[0][0],
-                        cert_file=certs[0][1], timeout=self.timeout, proxy_info=self.proxy_info)
+                if issubclass(connection_type, HTTPSConnectionWithTimeout):
+                    if certs:
+                        conn = self.connections[conn_key] = connection_type(
+                                authority, key_file=certs[0][0],
+                                cert_file=certs[0][1], timeout=self.timeout,
+                                proxy_info=self.proxy_info,
+                                ca_certs=self.ca_certs,
+                                disable_ssl_certificate_validation=
+                                        self.disable_ssl_certificate_validation)
+                    else:
+                        conn = self.connections[conn_key] = connection_type(
+                                authority, timeout=self.timeout,
+                                proxy_info=self.proxy_info,
+                                ca_certs=self.ca_certs,
+                                disable_ssl_certificate_validation=
+                                        self.disable_ssl_certificate_validation)
                 else:
-                    conn = self.connections[conn_key] = connection_type(authority, timeout=self.timeout, proxy_info=self.proxy_info)
+                    conn = self.connections[conn_key] = connection_type(
+                            authority, timeout=self.timeout,
+                            proxy_info=self.proxy_info)
                 conn.set_debuglevel(debuglevel)
 
             if 'range' not in headers and 'accept-encoding' not in headers:

@@ -26,6 +26,10 @@ import time
 import unittest
 import urlparse
 
+try:
+    import ssl
+except ImportError:
+    pass
 
 # Python 2.3 support
 if not hasattr(unittest.TestCase, 'assertTrue'):
@@ -121,6 +125,7 @@ class _MyHTTPConnection(object):
         self.port = port
         self.timeout = timeout
         self.log = ""
+        self.sock = None
 
     def set_debuglevel(self, level):
         pass
@@ -143,7 +148,14 @@ class HttpTest(unittest.TestCase):
     def setUp(self):
         if os.path.exists(cacheDirName): 
             [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
-        self.http = httplib2.Http(cacheDirName)
+
+        if sys.version_info < (2, 6):
+            disable_cert_validation = True
+        else:
+            disable_cert_validation = False
+        self.http = httplib2.Http(
+                cacheDirName,
+                disable_ssl_certificate_validation=disable_cert_validation)
         self.http.clear_credentials()
 
     def testIPv6NoSSL(self):
@@ -439,7 +451,7 @@ class HttpTest(unittest.TestCase):
 
     def testGetViaHttps(self):
         # Test that we can handle HTTPS
-        (response, content) = self.http.request("https://google.com/adsense/", "GET")
+        (response, content) = self.http.request("https://www.google.com/adsense/", "GET")
         self.assertEqual(200, response.status)
 
     def testGetViaHttpsSpecViolationOnLocation(self):
@@ -447,17 +459,54 @@ class HttpTest(unittest.TestCase):
         # even if they violate the spec by including
         # a relative Location: header instead of an 
         # absolute one.
-        (response, content) = self.http.request("https://google.com/adsense", "GET")
+        (response, content) = self.http.request("https://www.google.com/adsense", "GET")
         self.assertEqual(200, response.status)
         self.assertNotEqual(None, response.previous)
 
+    def testSslCertValidation(self):
+        if sys.version_info >= (2, 6):
+            # Test that we get an ssl.SSLError when specifying a non-existent CA
+            # certs file.
+            http = httplib2.Http(ca_certs='/nosuchfile')
+            self.assertRaises(ssl.SSLError,
+                    http.request, "https://www.google.com/", "GET")
+
+            # Test that we get a SSLHandshakeError if we try to access
+            # https;//www.google.com, using a CA cert file that doesn't contain
+            # the CA Gogole uses (i.e., simulating a cert that's not signed by a
+            # trusted CA).
+            other_ca_certs = os.path.join(
+                    os.path.dirname(os.path.abspath(httplib2.__file__ )),
+                    "test", "other_cacerts.txt")
+            http = httplib2.Http(ca_certs=other_ca_certs)
+            self.assertRaises(httplib2.SSLHandshakeError,
+                    http.request, "https://www.google.com/", "GET")
+
+    def testSslHostnameValidation(self):
+        if sys.version_info >= (2, 6):
+            # The SSL server at google.com:443 returns a certificate for
+            # 'www.google.com', which results in a host name mismatch.
+            # Note that this test only works because the ssl module and httplib2
+            # do not support SNI; for requests specifying a server name of
+            # 'google.com' via SNI, a matching cert would be returned.
+            self.assertRaises(httplib2.CertificateHostnameMismatch,
+                    self.http.request, "https://google.com/", "GET")
+
+    def testSslCertValidationWithoutSslModuleFails(self):
+        if sys.version_info < (2, 6):
+            http = httplib2.Http(disable_ssl_certificate_validation=False)
+            self.assertRaises(httplib2.CertificateValidationUnsupported,
+                    http.request, "https://www.google.com/", "GET")
 
     def testGetViaHttpsKeyCert(self):
         #  At this point I can only test
         #  that the key and cert files are passed in 
         #  correctly to httplib. It would be nice to have 
         #  a real https endpoint to test against.
-        http = httplib2.Http(timeout=2)
+
+        # bitworking.org presents an certificate for a non-matching host
+        # (*.webfaction.com), so we need to disable cert checking for this test.
+        http = httplib2.Http(timeout=2, disable_ssl_certificate_validation=True)
 
         http.add_certificate("akeyfile", "acertfile", "bitworking.org")
         try:
