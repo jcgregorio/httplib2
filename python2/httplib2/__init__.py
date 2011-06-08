@@ -933,6 +933,7 @@ try:
   from google.appengine.api.urlfetch import InvalidURLError
   from google.appengine.api.urlfetch import DownloadError
   from google.appengine.api.urlfetch import ResponseTooLargeError
+  from google.appengine.api.urlfetch import SSLCertificateError
 
 
   class ResponseDict(dict):
@@ -959,6 +960,7 @@ try:
       self.response = None
       self.scheme = 'http'
       self.validate_certificate = not disable_certificate_validation
+      self.sock = True
 
     def request(self, method, url, body, headers):
       # Calculate the absolute URI, which fetch requires
