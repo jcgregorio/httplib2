@@ -2,7 +2,7 @@ from distutils.core import setup
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.6.0'
+VERSION = '0.7.0'
 
 setup(name='httplib2',
         version=VERSION, 
@@ -70,4 +70,3 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
         'Topic :: Software Development :: Libraries',
         ],
         )
-
