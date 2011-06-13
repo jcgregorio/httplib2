@@ -55,6 +55,8 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 
 **Unit Tested**
   A large and growing set of unit tests.
+
+http://httplib2.googlecode.com/svn/trunk/#egg=httplib2-dev
         """,
         package_dir=pkgdir,
         packages=['httplib2'],
