@@ -335,6 +335,23 @@ def _decompressContent(response, new_content):
         raise FailedToDecompressContent(_("Content purported to be compressed with %s but failed to decompress.") % response.get('content-encoding'), response, content)
     return content
 
+def _bind_write_headers(msg):
+  from email.header import Header
+  def _write_headers(self):
+      # Self refers to the Generator object
+      for h, v in msg.items():
+          print('%s:' % h, end=' ', file=self._fp)
+          if isinstance(v, Header):
+              print(v.encode(maxlinelen=self._maxheaderlen), file=self._fp)
+          else:
+              # Header's got lots of smarts, so use it.
+              header = Header(v, maxlinelen=self._maxheaderlen, charset='utf-8',
+                              header_name=h)
+              print(header.encode(), file=self._fp)
+      # A blank line always separates headers from body
+      print(file=self._fp)
+  return _write_headers
+
 def _updateCache(request_headers, response_headers, content, cache, cachekey):
     if cachekey:
         cc = _parse_cache_control(request_headers)
@@ -365,7 +382,11 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
 
             status_header = 'status: %d\r\n' % status
 
-            header_str = info.as_string()
+            try:
+              header_str = info.as_string()
+            except UnicodeEncodeError:
+              setattr(info, '_write_headers', _bind_write_headers(info))
+              header_str = info.as_string()
 
             header_str = re.sub("\r(?!\n)|(?<!\r)\n", "\r\n", header_str)
             text = b"".join([status_header.encode('utf-8'), header_str.encode('utf-8'), content])
@@ -1048,18 +1069,13 @@ a string that contains the response entity body.
                 cachekey = defrag_uri
                 cached_value = self.cache.get(cachekey)
                 if cached_value:
-                    # info = email.message_from_string(cached_value)
-                    #
-                    # Need to replace the line above with the kludge below
-                    # to fix the non-existent bug not fixed in this
-                    # bug report: http://mail.python.org/pipermail/python-bugs-list/2005-September/030289.html
                     try:
                         info, content = cached_value.split(b'\r\n\r\n', 1)
-                        info = info.decode('utf-8')
-                        feedparser = email.feedparser.FeedParser()
-                        feedparser.feed(info)
-                        info = feedparser.close()
-                        feedparser._parse = None
+                        info = email.message_from_bytes(info)
+                        for k, v in info.items():
+                          if v.startswith('=?') and v.endswith('?='):
+                            info.replace_header(k,
+                                                str(*email.header.decode_header(v)[0]))
                     except IndexError:
                         self.cache.delete(cachekey)
                         cachekey = None
