@@ -975,6 +975,7 @@ the same interface as FileCache."""
                         redirect_method = method
                         if response.status in [302, 303]:
                           redirect_method = "GET"
+                          body = None
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
                 else:
