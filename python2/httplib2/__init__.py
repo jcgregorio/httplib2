@@ -911,6 +911,8 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                     raise SSLHandshakeError(e)
                 else:
                     raise
+            except (socket.timeout, socket.gaierror):
+              raise
             except socket.error, msg:
               if self.debuglevel > 0:
                   print 'connect fail:', (self.host, self.port)
