@@ -1236,7 +1236,7 @@ and more.
                         response.previous = old_response
                 else:
                     raise RedirectLimit("Redirected more times than rediection_limit allows.", response, content)
-            elif response.status in [200, 203] and method == "GET":
+            elif response.status in [200, 203] and method in ["GET", "HEAD"]:
                 # Don't cache 206's since we aren't going to handle byte range requests
                 if not response.has_key('content-location'):
                     response['content-location'] = absolute_uri
