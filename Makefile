@@ -26,5 +26,8 @@ release:
 doc:
 	#pudge -v -f --modules=httplib2 --dest=build/doc 
 
-register:
-	python setup.py register
+release:
+	python setup.py register upload
+	wget "http://support.googlecode.com/svn/trunk/scripts/googlecode_upload.py" -O googlecode_upload.py
+	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.tar.gz
+	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.zip
