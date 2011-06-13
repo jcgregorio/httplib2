@@ -1,3 +1,30 @@
+0.7.0
+    The two major changes in this release are SSL Certificate
+    checking and App Engine support. By default the certificates
+    of an HTTPS connection are checked, but that can be disabled
+    via disable_ssl_certificate_validation. The second change
+    is that on App Engine there is a new connection object
+    that utilizes the urlfetch capabilities on App Engine, including
+    setting timeouts and validating certificates.
+
+    The following issues have been addressed:
+
+    Fixes issue 72. Always lowercase authorization header.
+    Fix issue 47. Redirects that become a GET should not have a body.
+    Fixes issue 19. Set Content-location on redirected HEAD requests
+    Fixes issue 139. Redirect with a GET on 302 regardless of the originating method. 
+    Fixes issue 138. Handle unicode in headers when writing and retrieving cache entries. Who says headers have to be ASCII! 
+    Add certificate validation. Work initially started by Christoph Kern.
+    Set a version number. Fixes issue # 135.
+    Sync to latest version of socks.py
+    Add gzip to the user-agent, in case we are making a request to an app engine project: http://code.google.com/appengine/kb/general.html#compression
+    Uses a custom httplib shim on App Engine to wrap urlfetch, as opposed
+    Add default support for optimistic concurrency on PATCH requests
+    Fixes issue 126. IPv6 under various conditions would fail.
+    Fixes issue 131. Handle socket.timeout's that occur during send.
+    proxy support: degrade gracefully when socket.socket is unavailable
+
+
 0.6.0
 
    The following issues have been addressed:
