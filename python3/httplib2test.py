@@ -1416,11 +1416,11 @@ class HttpPrivateTest(unittest.TestCase):
             'www-authenticate': 'Digest realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", algorithm=MD5, qop="auth"'
         }
         content = b""
-        
+
         d = httplib2.DigestAuthentication(credentials, host, request_uri, headers, response, content, None)
         d.request("GET", request_uri, headers, content, cnonce="33033375ec278a46") 
-        our_request = "Authorization: %s" % headers['Authorization']
-        working_request = 'Authorization: Digest username="joe", realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", uri="/projects/httplib2/test/digest/", algorithm=MD5, response="97ed129401f7cdc60e5db58a80f3ea8b", qop=auth, nc=00000001, cnonce="33033375ec278a46"'
+        our_request = "authorization: %s" % headers['authorization']
+        working_request = 'authorization: Digest username="joe", realm="myrealm", nonce="Ygk86AsKBAA=3516200d37f9a3230352fde99977bd6d472d4306", uri="/projects/httplib2/test/digest/", algorithm=MD5, response="97ed129401f7cdc60e5db58a80f3ea8b", qop=auth, nc=00000001, cnonce="33033375ec278a46"'
         self.assertEqual(our_request, working_request)
 
 
