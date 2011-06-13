@@ -187,13 +187,24 @@ code indicating an error occured. See
 .. % type name like methoddesc.
 
 
-.. class:: Http([cache=None], [timeout=None])
+.. class:: Http([cache=None], [timeout=None], [proxy_info=None], [ca_certs=None], [disable_ssl_certificate_validation=False])
 
    The class that represents a client HTTP interface. The *cache* parameter is
    either the name of a directory to be used as a flat file cache, or it must an
    object that  implements the required caching interface. The *timeout* parameter
-   is the socket level timeout.
+   is the socket level timeout. The *ca_certs* parameter is the filename of the
+   CA certificates to use. If none is given a default set is used. The
+   *disable_ssl_certificate_validation* boolean flag determines if ssl certificate validation
+   is done. The *proxy_info* parameter is an object of type :class:ProxyInfo.
 
+
+.. class:: ProxyInfo(proxy_type, proxy_host, proxy_port, [proxy_rdns=None], [proxy_user=None], [proxy_pass=None])
+
+   Collect information required to use a proxy.
+   The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
+   constants. For example: ::
+
+   p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_port=8000)
 
 .. class:: Response(info)
 
