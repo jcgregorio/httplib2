@@ -895,6 +895,8 @@ the same interface as FileCache."""
                 pass
             try:
                 response = conn.getresponse()
+            except socket.timeout:
+                raise
             except (socket.error, http.client.HTTPException):
                 conn.close()
                 if i == 0:
