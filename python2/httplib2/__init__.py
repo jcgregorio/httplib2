@@ -1230,7 +1230,7 @@ and more.
                         if not old_response.has_key('content-location'):
                             old_response['content-location'] = absolute_uri
                         redirect_method = method
-                        if response.status == 303:
+                        if response.status in [302, 303]:
                             redirect_method = "GET"
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response

@@ -973,7 +973,7 @@ the same interface as FileCache."""
                         if 'content-location' not in old_response:
                             old_response['content-location'] = absolute_uri 
                         redirect_method = method
-                        if response.status == 303:
+                        if response.status in [302, 303]:
                           redirect_method = "GET"
                         (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
                         response.previous = old_response
