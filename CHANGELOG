@@ -1,3 +1,6 @@
+0.7.1
+    Fix failure to install cacerts.txt for 2.x installs.
+
 0.7.0
     The two major changes in this release are SSL Certificate
     checking and App Engine support. By default the certificates
