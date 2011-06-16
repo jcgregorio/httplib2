@@ -2,7 +2,7 @@ from distutils.core import setup
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.7.0'
+VERSION = '0.7.1'
 
 setup(name='httplib2',
         version=VERSION, 
@@ -60,7 +60,7 @@ http://httplib2.googlecode.com/svn/trunk/#egg=httplib2-dev
         """,
         package_dir=pkgdir,
         packages=['httplib2'],
-        package_data={'httplib2': '*.txt'},
+        package_data={'httplib2': ['*.txt']},
         classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
