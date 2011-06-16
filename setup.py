@@ -60,6 +60,7 @@ http://httplib2.googlecode.com/svn/trunk/#egg=httplib2-dev
         """,
         package_dir=pkgdir,
         packages=['httplib2'],
+        package_data={'httplib2': '*.txt'},
         classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
