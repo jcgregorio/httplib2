@@ -147,6 +147,7 @@ class ServerNotFoundError(HttpLib2Error): pass
 class ProxiesUnavailableError(HttpLib2Error): pass
 class CertificateValidationUnsupported(HttpLib2Error): pass
 class SSLHandshakeError(HttpLib2Error): pass
+class NotSupportedOnThisPlatform(HttpLib2Error): pass
 class CertificateHostnameMismatch(SSLHandshakeError):
   def __init__(self, desc, host, cert):
     HttpLib2Error.__init__(self, desc)
@@ -976,7 +977,8 @@ try:
             deadline=self.timeout,
             validate_certificate=self.validate_certificate)
         self.response = ResponseDict(response.headers)
-        self.response['status'] = response.status_code
+        self.response['status'] = str(response.status_code)
+        self.response.status = response.status_code
         setattr(self.response, 'read', lambda : response.content)
 
       # Make sure the exceptions raised match the exceptions expected.
