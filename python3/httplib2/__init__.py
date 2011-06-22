@@ -512,6 +512,8 @@ class DigestAuthentication(Authentication):
                 self.challenge['nc'],
                 self.challenge['cnonce'],
                 )
+        if self.challenge.get('opaque'):
+            headers['authorization'] += ', opaque="%s"' % self.challenge['opaque']
         self.challenge['nc'] += 1
 
     def response(self, response, content):
