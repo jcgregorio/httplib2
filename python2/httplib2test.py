@@ -482,6 +482,14 @@ class HttpTest(unittest.TestCase):
             self.assertRaises(httplib2.SSLHandshakeError,
                     http.request, "https://www.google.com/", "GET")
 
+    def testSslCertValidationDoubleDots(self):
+        if sys.version_info >= (2, 6):
+            # Test that we get match a double dot cert
+            try:
+              self.http.request("https://1.www.appspot.com/", "GET")
+            except httplib2.CertificateHostnameMismatch:
+              self.fail('cert with *.*.appspot.com should not raise an exception.')
+
     def testSslHostnameValidation(self):
         if sys.version_info >= (2, 6):
             # The SSL server at google.com:443 returns a certificate for

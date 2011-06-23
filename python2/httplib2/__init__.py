@@ -869,7 +869,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
             host_re = host.replace('.', '\.').replace('*', '[^.]*')
             if re.search('^%s$' % (host_re,), hostname, re.I):
                 return True
-            return False
+        return False
 
     def connect(self):
         "Connect to a host on a given (SSL) port."
