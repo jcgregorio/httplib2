@@ -1596,6 +1596,14 @@ class TestProxyInfo(unittest.TestCase):
         pi = httplib2.ProxyInfo.from_environment()
         self.assertEquals(pi, None)
 
+    def test_applies_to(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:80'
+        os.environ['https_proxy'] = 'http://myproxy.example.com:81'
+        os.environ['no_proxy'] = 'localhost,otherhost.domain.local'
+        pi = httplib2.ProxyInfo.from_environment()
+        self.assertFalse(pi.applies_to('localhost'))
+        self.assertTrue(pi.applies_to('www.google.com'))
+
 
 if __name__ == '__main__':
     unittest.main()

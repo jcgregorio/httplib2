@@ -1,3 +1,14 @@
+0.8.0
+    ProxyInfo objects now can construct themselves from environment
+    variables commonly-used in Unix environments. By default, the Http
+    class will construct a ProxyInfo instance based on these environment
+    variables. To achieve the previous behavior, where environment
+    variables are ignored, pass proxy_info=None to Http().
+
+    The following issues have been addressed:
+
+    Issue 159: automatic detection of proxy configuration.
+
 0.7.1
     Fix failure to install cacerts.txt for 2.x installs.
 
@@ -15,8 +26,8 @@
     Fixes issue 72. Always lowercase authorization header.
     Fix issue 47. Redirects that become a GET should not have a body.
     Fixes issue 19. Set Content-location on redirected HEAD requests
-    Fixes issue 139. Redirect with a GET on 302 regardless of the originating method. 
-    Fixes issue 138. Handle unicode in headers when writing and retrieving cache entries. Who says headers have to be ASCII! 
+    Fixes issue 139. Redirect with a GET on 302 regardless of the originating method.
+    Fixes issue 138. Handle unicode in headers when writing and retrieving cache entries. Who says headers have to be ASCII!
     Add certificate validation. Work initially started by Christoph Kern.
     Set a version number. Fixes issue # 135.
     Sync to latest version of socks.py
@@ -32,14 +43,14 @@
 
    The following issues have been addressed:
 
-    #51 - Failure to handle server legitimately closing connection before request body is fully sent	
-    #77 - Duplicated caching test	 
+    #51 - Failure to handle server legitimately closing connection before request body is fully sent
+    #77 - Duplicated caching test
     #65 - Transform _normalize_headers into a method of Http class
-    #45 - Vary header	  
-    #73 - All files in Mercurial are executable	 
-    #81 - Have a useful .hgignore	 	 
-    #78 - Add release tags to the Mercurial repository		 
-    #67 - HEAD requests cause next request to be retried	  
+    #45 - Vary header
+    #73 - All files in Mercurial are executable
+    #81 - Have a useful .hgignore
+    #78 - Add release tags to the Mercurial repository
+    #67 - HEAD requests cause next request to be retried
 
    Mostly bug fixes, the big enhancement is the addition of proper Vary: header
    handling. Thanks to Chris Dent for that change.
@@ -53,7 +64,7 @@
 
    Fixed the following bugs:
 
-      #12 - Cache-Control: only-if-cached incorrectly does request if item not in cache 
+      #12 - Cache-Control: only-if-cached incorrectly does request if item not in cache
       #39 - Deprecation warnings in Python 2.6
       #54 - Http.request fails accesing Google account via http proxy
       #56 - Block on response.read() for HEAD requests.
@@ -66,13 +77,13 @@
 
    Added support for proxies if the Socksipy module is installed.
 
-   Fixed bug with some HEAD responses having content-length set to 
+   Fixed bug with some HEAD responses having content-length set to
    zero incorrectly.
 
    Fixed most except's to catch a specific exception.
 
    Added 'connection_type' parameter to Http.request().
- 
+
    The default for 'force_exception_to_status_code' was changed to False. Defaulting
    to True was causing quite a bit of confusion.
 
@@ -89,11 +100,11 @@
 
    Many improvements to the file cache:
 
-     1.  The names in the cache are now much less 
+     1.  The names in the cache are now much less
          opaque, which should help with debugging.
 
-     2.  The disk cache is now Apache mod_asis compatible. 
-     
+     2.  The disk cache is now Apache mod_asis compatible.
+
      3.  A Content-Location: header is supplied and stored in the
          cache which points to the original requested URI.
 
@@ -106,7 +117,7 @@
    Http.add_credentials() now takes an optional domain to restrict
    the credentials to being only used on that domain.
 
-   Added Http.add_certificate() which allows setting 
+   Added Http.add_certificate() which allows setting
    a key and cert for SSL connnections.
 
    Many other bugs fixed.
@@ -115,17 +126,17 @@
 0.2.0
    Added support for Google Auth.
 
-   Added experimental support for HMACDigest.  
+   Added experimental support for HMACDigest.
 
    Added support for a pluggable caching system. Now supports
    the old system of using the file system and now memcached.
 
-   Added httplib2.debuglevel which turns on debugging. 
+   Added httplib2.debuglevel which turns on debugging.
 
    Change Response._previous to Response.previous.
 
    Addded Http.follow_all_redirects which forces
-   httplib2 to follow all redirects, as opposed to 
+   httplib2 to follow all redirects, as opposed to
    following only the safe redirects. This makes the
    GData protocol easier to use.
 
@@ -140,12 +151,12 @@
     4. Subsequent requests to resources that had timed out would raise an exception.
     And one feature request for 'method' to default to GET.
 
-    Xavier Verges Farrero supplied what I needed to make the 
+    Xavier Verges Farrero supplied what I needed to make the
     library work with Python 2.3.
 
     I added distutils based setup.py.
 
-0.1 Rev 86 
-    
+0.1 Rev 86
+
     Initial Release
 

@@ -776,7 +776,7 @@ class ProxyInfo(object):
     @classmethod
     def from_url(cls, url, method='http'):
         """
-        Construct a ProxyInfo from a URL
+        Construct a ProxyInfo from a URL (such as http_proxy env var)
         """
         url = urlparse.urlparse(url)
         ident, sep, host_port = url.netloc.rpartition('@')
@@ -794,6 +794,9 @@ class ProxyInfo(object):
             proxy_user = username or None,
             proxy_pass = password or None,
         )
+
+    def applies_to(self, hostname):
+        return hostname not in self.bypass_hosts
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
@@ -1088,11 +1091,10 @@ class Http(object):
 
 and more.
     """
-    def __init__(self, cache=None, timeout=None, proxy_info=None,
+    def __init__(self, cache=None, timeout=None,
+                 proxy_info=ProxyInfo.from_environment,
                  ca_certs=None, disable_ssl_certificate_validation=False):
         """
-        The value of proxy_info is a ProxyInfo instance.
-
         If 'cache' is a string then it is used as a directory name for
         a disk cache. Otherwise it must be an object that supports the
         same interface as FileCache.
@@ -1101,6 +1103,13 @@ and more.
         then Python's default timeout for sockets will be used. See
         for example the docs of socket.setdefaulttimeout():
         http://docs.python.org/library/socket.html#socket.setdefaulttimeout
+
+        `proxy_info` may be:
+          - a callable that takes the http scheme ('http' or 'https') and
+            returns a ProxyInfo instance per request. By default, uses
+            ProxyInfo.from_environment.
+          - a ProxyInfo instance (static proxy config).
+          - None (proxy disabled).
 
         ca_certs is the path of a file containing root CA certificates for SSL
         server certificate validation.  By default, a CA cert file bundled with
@@ -1349,6 +1358,8 @@ a string that contains the response entity body.
                 scheme = 'https'
                 authority = domain_port[0]
 
+            proxy_info = self._get_proxy_info(scheme, authority)
+
             conn_key = scheme+":"+authority
             if conn_key in self.connections:
                 conn = self.connections[conn_key]
@@ -1361,21 +1372,21 @@ a string that contains the response entity body.
                         conn = self.connections[conn_key] = connection_type(
                                 authority, key_file=certs[0][0],
                                 cert_file=certs[0][1], timeout=self.timeout,
-                                proxy_info=self.proxy_info,
+                                proxy_info=proxy_info,
                                 ca_certs=self.ca_certs,
                                 disable_ssl_certificate_validation=
                                         self.disable_ssl_certificate_validation)
                     else:
                         conn = self.connections[conn_key] = connection_type(
                                 authority, timeout=self.timeout,
-                                proxy_info=self.proxy_info,
+                                proxy_info=proxy_info,
                                 ca_certs=self.ca_certs,
                                 disable_ssl_certificate_validation=
                                         self.disable_ssl_certificate_validation)
                 else:
                     conn = self.connections[conn_key] = connection_type(
                             authority, timeout=self.timeout,
-                            proxy_info=self.proxy_info)
+                            proxy_info=proxy_info)
                 conn.set_debuglevel(debuglevel)
 
             if 'range' not in headers and 'accept-encoding' not in headers:
@@ -1521,6 +1532,18 @@ a string that contains the response entity body.
 
         return (response, content)
 
+    def _get_proxy_info(self, scheme, authority):
+        """Return a ProxyInfo instance (or None) based on the scheme
+        and authority.
+        """
+        proxy_info = self.proxy_info
+        if callable(proxy_info):
+            proxy_info = proxy_info(scheme)
+
+        if (hasattr(proxy_info, 'applies_to')
+            and not proxy_info.applies_to(authority)):
+            proxy_info = None
+        return proxy_info
 
 
 class Response(dict):
