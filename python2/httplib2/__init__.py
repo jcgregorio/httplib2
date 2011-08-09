@@ -42,10 +42,10 @@ import calendar
 import time
 import random
 import errno
-# remove depracated warning in python2.6
 try:
     from hashlib import sha1 as _sha, md5 as _md5
 except ImportError:
+    # prior to Python 2.5, these were separate modules
     import sha
     import md5
     _sha = sha.new
@@ -731,6 +731,8 @@ class KeyCerts(Credentials):
 
 class ProxyInfo(object):
     """Collect information required to use a proxy."""
+    bypass_hosts = ()
+
     def __init__(self, proxy_type, proxy_host, proxy_port,
         proxy_rdns=None, proxy_user=None, proxy_pass=None):
         """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
@@ -752,6 +754,46 @@ class ProxyInfo(object):
 
     def isgood(self):
         return (self.proxy_host != None) and (self.proxy_port != None)
+
+    @classmethod
+    def from_environment(cls, method='http'):
+        """
+        Read proxy info from the environment variables.
+        """
+        if method not in ['http', 'https']: return
+
+        env_var = method+'_proxy'
+        url = os.environ.get(env_var, os.environ.get(env_var.upper()))
+        if not url: return
+        pi = cls.from_url(url, method)
+
+        no_proxy = os.environ.get('no_proxy', '')
+        bypass_hosts = no_proxy.split(',') if no_proxy else []
+
+        pi.bypass_hosts = bypass_hosts
+        return pi
+
+    @classmethod
+    def from_url(cls, url, method='http'):
+        """
+        Construct a ProxyInfo from a URL
+        """
+        url = urlparse.urlparse(url)
+        ident, sep, host_port = url.netloc.rpartition('@')
+        username, sep, password = ident.partition(':')
+        host, sep, port = host_port.partition(':')
+        if port:
+            port = int(port)
+        else:
+            port = dict(https=443, http=80)[method]
+        proxy_type = 3 # socks.PROXY_TYPE_HTTP
+        return cls(
+            proxy_type = proxy_type,
+            proxy_host = host,
+            proxy_port = port,
+            proxy_user = username or None,
+            proxy_pass = password or None,
+        )
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
