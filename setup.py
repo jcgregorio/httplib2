@@ -1,4 +1,7 @@
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
