@@ -730,21 +730,28 @@ class KeyCerts(Credentials):
 
 
 class ProxyInfo(object):
-  """Collect information required to use a proxy."""
-  def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=None, proxy_user=None, proxy_pass=None):
-      """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
-      constants. For example:
+    """Collect information required to use a proxy."""
+    def __init__(self, proxy_type, proxy_host, proxy_port,
+        proxy_rdns=None, proxy_user=None, proxy_pass=None):
+        """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
+        constants. For example:
 
-p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_port=8000)
-      """
-      self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns, self.proxy_user, self.proxy_pass = proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass
+        p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP,
+            proxy_host='localhost', proxy_port=8000)
+        """
+        self.proxy_type = proxy_type
+        self.proxy_host = proxy_host
+        self.proxy_port = proxy_port
+        self.proxy_rdns = proxy_rdns
+        self.proxy_user = proxy_user
+        self.proxy_pass = proxy_pass
 
-  def astuple(self):
-    return (self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns,
-        self.proxy_user, self.proxy_pass)
+    def astuple(self):
+        return (self.proxy_type, self.proxy_host, self.proxy_port,
+            self.proxy_rdns, self.proxy_user, self.proxy_pass)
 
-  def isgood(self):
-    return (self.proxy_host != None) and (self.proxy_port != None)
+    def isgood(self):
+        return (self.proxy_host != None) and (self.proxy_port != None)
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
