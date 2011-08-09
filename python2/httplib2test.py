@@ -172,6 +172,10 @@ class HttpTest(unittest.TestCase):
           self.http.request("https://[::1]/")
         except socket.gaierror:
           self.fail("should get the address family right for IPv6")
+        except httplib2.CertificateHostnameMismatch:
+          # We connected and verified that the certificate doesn't match
+          #  the name. Good enough.
+          pass
         except socket.error:
           # Even if IPv6 isn't installed on a machine it should just raise socket.error
           pass
