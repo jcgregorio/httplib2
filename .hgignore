@@ -4,3 +4,4 @@ dist
 upload.py
 **.pyc
 .cache
+MANIFEST
