@@ -728,6 +728,7 @@ class KeyCerts(Credentials):
     name/password are mapped to key/cert."""
     pass
 
+class AllHosts(object): pass
 
 class ProxyInfo(object):
     """Collect information required to use a proxy."""
@@ -767,8 +768,10 @@ class ProxyInfo(object):
         if not url: return
         pi = cls.from_url(url, method)
 
-        no_proxy = os.environ.get('no_proxy', '')
+        no_proxy = os.environ.get('no_proxy', os.environ.get('NO_PROXY', ''))
         bypass_hosts = no_proxy.split(',') if no_proxy else []
+        # special case, no_proxy=* means all hosts bypassed
+        if no_proxy == '*': bypass_hosts = AllHosts
 
         pi.bypass_hosts = bypass_hosts
         return pi
@@ -796,7 +799,14 @@ class ProxyInfo(object):
         )
 
     def applies_to(self, hostname):
-        return hostname not in self.bypass_hosts
+        return not self.bypass_host(hostname)
+
+    def bypass_host(self, hostname):
+        """Has this host been excluded from the proxy config"""
+        return self.bypass_hosts is AllHosts or any(
+            hostname.endswith(domain)
+            for domain in self.bypass_hosts
+        )
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
