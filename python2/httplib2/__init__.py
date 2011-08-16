@@ -35,6 +35,7 @@ import gzip
 import zlib
 import httplib
 import urlparse
+import urllib
 import base64
 import os
 import copy
@@ -1546,12 +1547,13 @@ a string that contains the response entity body.
         """Return a ProxyInfo instance (or None) based on the scheme
         and authority.
         """
+        hostname, port = urllib.splitport(authority)
         proxy_info = self.proxy_info
         if callable(proxy_info):
             proxy_info = proxy_info(scheme)
 
         if (hasattr(proxy_info, 'applies_to')
-            and not proxy_info.applies_to(authority)):
+            and not proxy_info.applies_to(hostname)):
             proxy_info = None
         return proxy_info
 
