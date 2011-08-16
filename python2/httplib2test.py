@@ -1599,10 +1599,18 @@ class TestProxyInfo(unittest.TestCase):
     def test_applies_to(self):
         os.environ['http_proxy'] = 'http://myproxy.example.com:80'
         os.environ['https_proxy'] = 'http://myproxy.example.com:81'
-        os.environ['no_proxy'] = 'localhost,otherhost.domain.local'
+        os.environ['no_proxy'] = 'localhost,otherhost.domain.local,example.com'
         pi = httplib2.ProxyInfo.from_environment()
         self.assertFalse(pi.applies_to('localhost'))
         self.assertTrue(pi.applies_to('www.google.com'))
+        self.assertFalse(pi.applies_to('www.example.com'))
+
+    def test_no_proxy_star(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:80'
+        os.environ['NO_PROXY'] = '*'
+        pi = httplib2.ProxyInfo.from_environment()
+        for host in ('localhost', '169.254.38.192', 'www.google.com'):
+            self.assertFalse(pi.applies_to(host))
 
 
 if __name__ == '__main__':
