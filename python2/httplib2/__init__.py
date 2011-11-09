@@ -994,6 +994,10 @@ try:
 
     def getresponse(self):
       return self.response
+      if self.response:
+        return self.response
+      else:
+        raise httplib.HTTPException()
 
     def set_debuglevel(self, level):
       pass
@@ -1160,7 +1164,6 @@ and more.
                     conn.close()
                     conn.connect()
                     continue
-                pass
             try:
                 response = conn.getresponse()
             except (socket.error, httplib.HTTPException):
