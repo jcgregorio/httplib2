@@ -993,7 +993,6 @@ try:
         raise httplib.HTTPException()
 
     def getresponse(self):
-      return self.response
       if self.response:
         return self.response
       else:
