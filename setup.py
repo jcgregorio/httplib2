@@ -2,7 +2,7 @@ from distutils.core import setup
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.7.1'
+VERSION = '0.7.2'
 
 setup(name='httplib2',
         version=VERSION, 

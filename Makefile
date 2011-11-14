@@ -34,5 +34,5 @@ release:
 	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.tar.gz
 	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.zip
 
-doc:
-	#pudge -v -f --modules=httplib2 --dest=build/doc 
+docs:
+	pudge -v -f --modules=httplib2 --dest=build/doc 
