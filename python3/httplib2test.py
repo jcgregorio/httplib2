@@ -428,11 +428,11 @@ class HttpTest(unittest.TestCase):
         self.assertEqual("302", response['status'])
         self.assertTrue(content.startswith(b"This is content"))
  
-    def testGet302ViaHttps(self):
+    def testGet301ViaHttps(self):
         # Google always redirects to http://google.com
-        (response, content) = self.http.request("https://www.google.com", "GET")
+        (response, content) = self.http.request("https://code.google.com/apis/", "GET")
         self.assertEqual(200, response.status)
-        self.assertEqual(302, response.previous.status)
+        self.assertEqual(301, response.previous.status)
 
     def testGetViaHttps(self):
         # Test that we can handle HTTPS
