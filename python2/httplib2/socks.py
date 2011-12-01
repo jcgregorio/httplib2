@@ -13,7 +13,7 @@ are permitted provided that the following conditions are met:
 3. Neither the name of Dan Haim nor the names of his contributors may be used
    to endorse or promote products derived from this software without specific
    prior written permission.
-   
+
 THIS SOFTWARE IS PROVIDED BY DAN HAIM "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -143,15 +143,15 @@ class socksocket(socket.socket):
         return data
 
     def sendall(self, content, *args):
-        """ override socket.socket.sendall method to rewrite the header 
-        for non-tunneling proxies if needed 
+        """ override socket.socket.sendall method to rewrite the header
+        for non-tunneling proxies if needed
         """
         if not self.__httptunnel:
             content = self.__rewriteproxy(content)
         return super(socksocket, self).sendall(content, *args)
 
     def __rewriteproxy(self, header):
-        """ rewrite HTTP request headers to support non-tunneling proxies 
+        """ rewrite HTTP request headers to support non-tunneling proxies
         (i.e. those which do not support the CONNECT method).
         This only works for HTTP (not HTTPS) since HTTPS requires tunneling.
         """
@@ -162,7 +162,7 @@ class socksocket(socket.socket):
                 host = hdr
             elif hdr.lower().startswith("get") or hdr.lower().startswith("post"):
                 endpt = hdr
-        if host and endpt: 
+        if host and endpt:
             hdrs.remove(host)
             hdrs.remove(endpt)
             host = host.split(" ")[1]
@@ -399,7 +399,7 @@ class socksocket(socket.socket):
         To select the proxy server use setproxy().
         """
         # Do a minimal input check first
-        if (not type(destpair) in (list,tuple)) or (len(destpair) < 2) or (type(destpair[0]) != type('')) or (type(destpair[1]) != int):
+        if (not type(destpair) in (list,tuple)) or (len(destpair) < 2) or (not isinstance(destpair[0], basestring)) or (type(destpair[1]) != int):
             raise GeneralProxyError((5, _generalerrors[5]))
         if self.__proxy[0] == PROXY_TYPE_SOCKS5:
             if self.__proxy[2] != None:
