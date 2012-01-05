@@ -1552,5 +1552,66 @@ class HttpPrivateTest(unittest.TestCase):
         end2end = httplib2._get_end2end_headers(response)
         self.assertEquals(0, len(end2end))
 
+
+class TestProxyInfo(unittest.TestCase):
+    def setUp(self):
+        self.orig_env = dict(os.environ)
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self.orig_env)
+
+    def test_from_url(self):
+        pi = httplib2.ProxyInfo.from_url('http://myproxy.example.com')
+        self.assertEquals(pi.proxy_host, 'myproxy.example.com')
+        self.assertEquals(pi.proxy_port, 80)
+        self.assertEquals(pi.proxy_user, None)
+
+    def test_from_url_ident(self):
+        pi = httplib2.ProxyInfo.from_url('http://zoidberg:fish@someproxy:99')
+        self.assertEquals(pi.proxy_host, 'someproxy')
+        self.assertEquals(pi.proxy_port, 99)
+        self.assertEquals(pi.proxy_user, 'zoidberg')
+        self.assertEquals(pi.proxy_pass, 'fish')
+
+    def test_from_env(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:8080'
+        pi = httplib2.ProxyInfo.from_environment()
+        self.assertEquals(pi.proxy_host, 'myproxy.example.com')
+        self.assertEquals(pi.proxy_port, 8080)
+        self.assertEquals(pi.bypass_hosts, [])
+
+    def test_from_env_no_proxy(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:80'
+        os.environ['https_proxy'] = 'http://myproxy.example.com:81'
+        os.environ['no_proxy'] = 'localhost,otherhost.domain.local'
+        pi = httplib2.ProxyInfo.from_environment('https')
+        self.assertEquals(pi.proxy_host, 'myproxy.example.com')
+        self.assertEquals(pi.proxy_port, 81)
+        self.assertEquals(pi.bypass_hosts, ['localhost',
+            'otherhost.domain.local'])
+
+    def test_from_env_none(self):
+        os.environ.clear()
+        pi = httplib2.ProxyInfo.from_environment()
+        self.assertEquals(pi, None)
+
+    def test_applies_to(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:80'
+        os.environ['https_proxy'] = 'http://myproxy.example.com:81'
+        os.environ['no_proxy'] = 'localhost,otherhost.domain.local,example.com'
+        pi = httplib2.ProxyInfo.from_environment()
+        self.assertFalse(pi.applies_to('localhost'))
+        self.assertTrue(pi.applies_to('www.google.com'))
+        self.assertFalse(pi.applies_to('www.example.com'))
+
+    def test_no_proxy_star(self):
+        os.environ['http_proxy'] = 'http://myproxy.example.com:80'
+        os.environ['NO_PROXY'] = '*'
+        pi = httplib2.ProxyInfo.from_environment()
+        for host in ('localhost', '169.254.38.192', 'www.google.com'):
+            self.assertFalse(pi.applies_to(host))
+
+
 if __name__ == '__main__':
     unittest.main()
