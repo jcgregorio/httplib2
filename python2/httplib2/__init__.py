@@ -729,7 +729,8 @@ class KeyCerts(Credentials):
     name/password are mapped to key/cert."""
     pass
 
-class AllHosts(object): pass
+class AllHosts(object):
+  pass
 
 class ProxyInfo(object):
     """Collect information required to use a proxy."""
@@ -762,17 +763,22 @@ class ProxyInfo(object):
         """
         Read proxy info from the environment variables.
         """
-        if method not in ['http', 'https']: return
+        if method not in ['http', 'https']:
+          return
 
-        env_var = method+'_proxy'
+        env_var = method + '_proxy'
         url = os.environ.get(env_var, os.environ.get(env_var.upper()))
-        if not url: return
+        if not url:
+          return
         pi = cls.from_url(url, method)
 
         no_proxy = os.environ.get('no_proxy', os.environ.get('NO_PROXY', ''))
-        bypass_hosts = no_proxy.split(',') if no_proxy else []
+        bypass_hosts = []
+        if no_proxy:
+          bypass_hosts = no_proxy.split(',')
         # special case, no_proxy=* means all hosts bypassed
-        if no_proxy == '*': bypass_hosts = AllHosts
+        if no_proxy == '*':
+          bypass_hosts = AllHosts
 
         pi.bypass_hosts = bypass_hosts
         return pi
@@ -783,13 +789,27 @@ class ProxyInfo(object):
         Construct a ProxyInfo from a URL (such as http_proxy env var)
         """
         url = urlparse.urlparse(url)
-        ident, sep, host_port = url.netloc.rpartition('@')
-        username, sep, password = ident.partition(':')
-        host, sep, port = host_port.partition(':')
+        username = None
+        password = None
+        port = None
+        if '@' in url[1]:
+          ident, host_port = url[1].split('@', 1)
+          if ':' in ident:
+            username, password = ident.split(':', 1)
+          else:
+            password = ident
+        else:
+          host_port = url[1]
+        if ':' in host_port:
+          host, port = host_port.split(':', 1)
+        else:
+          host = host_port
+
         if port:
             port = int(port)
         else:
             port = dict(https=443, http=80)[method]
+
         proxy_type = 3 # socks.PROXY_TYPE_HTTP
         return cls(
             proxy_type = proxy_type,
@@ -804,10 +824,15 @@ class ProxyInfo(object):
 
     def bypass_host(self, hostname):
         """Has this host been excluded from the proxy config"""
-        return self.bypass_hosts is AllHosts or any(
-            hostname.endswith(domain)
-            for domain in self.bypass_hosts
-        )
+        if self.bypass_hosts is AllHosts:
+          return True
+
+        bypass = False
+        for domain in self.bypass_hosts:
+          if hostname.endswith(domain):
+            bypass = True
+
+        return bypass
 
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
