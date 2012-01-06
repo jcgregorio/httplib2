@@ -874,7 +874,7 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                 if self.debuglevel > 0:
                     print "connect: (%s, %s)" % (self.host, self.port)
 
-                self.sock.connect(sa)
+                self.sock.connect((self.host, self.port) + sa[2:])
             except socket.error, msg:
                 if self.debuglevel > 0:
                     print 'connect fail:', (self.host, self.port)
