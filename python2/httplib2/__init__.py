@@ -58,7 +58,10 @@ import socket
 try:
     from httplib2 import socks
 except ImportError:
-    socks = None
+    try:
+        import socks
+    except ImportError:
+        socks = None
 
 # Build the appropriate socket wrapper for ssl
 try:
