@@ -9,12 +9,16 @@ tests:
 
 VERSION = $(shell python setup.py --version)
 INLINE_VERSION = $(shell cd python2; python -c "import httplib2;print httplib2.__version__")
-INLINE_VERSION_3 = $(shell cd python3; python3.2 -c "import httplib2;print(httplib2.__version__)")
+INLINE_VERSION_3 = $(shell cd python3; ~/bin/python3.2 -c "import httplib2;print(httplib2.__version__)")
 DST = dist/httplib2-$(VERSION)
 
 release:
-	[ "$(VERSION)" == "$(INLINE_VERSION)" ] # Check for version number mismatch
-	[ "$(VERSION)" == "$(INLINE_VERSION_3)" ] # Check for version number mismatch
+	echo $(INLINE_VERSION_3)
+	echo $(INLINE_VERSION)
+	# Check for version number mismatch
+	if [ $(VERSION) -ne $(INLINE_VERSION_3) ]; then exit 1; fi
+	if [ $(VERSION) -ne $(INLINE_VERSION) ]; then exit 1; fi
+
 	-find . -name "*.pyc" | xargs rm 
 	-find . -name "*.orig" | xargs rm 
 	-rm -rf python2/.cache
@@ -26,7 +30,7 @@ release:
 	-mkdir dist/httplib2-$(VERSION)
 	cp -r python2 $(DST) 
 	cp -r python3 $(DST) 
-	cp setup.py README MANIFEST CHANGELOG $(DST)
+	cp setup.py README MANIFEST.in CHANGELOG $(DST)
 	cd dist && tar -czv -f httplib2-$(VERSION).tar.gz httplib2-$(VERSION) 
 	cd dist && zip httplib2-$(VERSION).zip -r httplib2-$(VERSION)
 	python setup.py register upload
