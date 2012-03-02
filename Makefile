@@ -33,7 +33,7 @@ release:
 	cp setup.py README MANIFEST.in CHANGELOG $(DST)
 	cd dist && tar -czv -f httplib2-$(VERSION).tar.gz httplib2-$(VERSION) 
 	cd dist && zip httplib2-$(VERSION).zip -r httplib2-$(VERSION)
-	python setup.py register upload
+	cd dist/httplib2-$(VERSION) && python setup.py sdist --formats=gztar,zip upload
 	wget "http://support.googlecode.com/svn/trunk/scripts/googlecode_upload.py" -O googlecode_upload.py
 	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.tar.gz
 	python googlecode_upload.py --summary="Version $(shell python setup.py --version)" --project=httplib2 dist/*.zip
