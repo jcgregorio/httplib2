@@ -862,13 +862,24 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
             raise ProxiesUnavailableError(
                 'Proxy support missing but proxy use was requested!')
         msg = "getaddrinfo returns an empty list"
-        for res in socket.getaddrinfo(self.host, self.port, 0,
-                socket.SOCK_STREAM):
+        if self.proxy_info and self.proxy_info.isgood():
+            use_proxy = True
+            proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
+        else:
+            use_proxy = False
+        if use_proxy and proxy_rdns:
+            host = proxy_host
+            port = proxy_port
+        else:
+            host = self.host
+            port = self.port
+
+        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
             try:
-                if self.proxy_info and self.proxy_info.isgood():
+                if use_proxy:
                     self.sock = socks.socksocket(af, socktype, proto)
-                    self.sock.setproxy(*self.proxy_info.astuple())
+                    self.sock.setproxy(proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)
                 else:
                     self.sock = socket.socket(af, socktype, proto)
                     self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -877,12 +888,16 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                     self.sock.settimeout(self.timeout)
                     # End of difference from httplib.
                 if self.debuglevel > 0:
-                    print "connect: (%s, %s)" % (self.host, self.port)
+                    print "connect: (%s, %s) ************" % (self.host, self.port)
+                    if use_proxy:
+                        print "proxy: %s ************" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
 
                 self.sock.connect((self.host, self.port) + sa[2:])
             except socket.error, msg:
                 if self.debuglevel > 0:
-                    print 'connect fail:', (self.host, self.port)
+                    print "connect fail: (%s, %s)" % (self.host, self.port)
+                    if use_proxy:
+                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
                 if self.sock:
                     self.sock.close()
                 self.sock = None
@@ -968,12 +983,25 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         "Connect to a host on a given (SSL) port."
 
         msg = "getaddrinfo returns an empty list"
+        if self.proxy_info and self.proxy_info.isgood():
+            use_proxy = True
+            proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
+        else:
+            use_proxy = False
+        if use_proxy and proxy_rdns:
+            host = proxy_host
+            port = proxy_port
+        else:
+            host = self.host
+            port = self.port
+        
         for family, socktype, proto, canonname, sockaddr in socket.getaddrinfo(
-            self.host, self.port, 0, socket.SOCK_STREAM):
+            host, port, 0, socket.SOCK_STREAM):
             try:
-                if self.proxy_info and self.proxy_info.isgood():
+                if use_proxy:
                     sock = socks.socksocket(family, socktype, proto)
-                    sock.setproxy(*self.proxy_info.astuple())
+                    
+                    sock.setproxy(proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)
                 else:
                     sock = socket.socket(family, socktype, proto)
                     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -986,6 +1014,8 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                     self.disable_ssl_certificate_validation, self.ca_certs)
                 if self.debuglevel > 0:
                     print "connect: (%s, %s)" % (self.host, self.port)
+                    if use_proxy:
+                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
                 if not self.disable_ssl_certificate_validation:
                     cert = self.sock.getpeercert()
                     hostname = self.host.split(':', 0)[0]
@@ -1011,7 +1041,9 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
               raise
             except socket.error, msg:
               if self.debuglevel > 0:
-                  print 'connect fail:', (self.host, self.port)
+                  print "connect fail: (%s, %s)" % (self.host, self.port)
+                  if use_proxy:
+                      print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
               if self.sock:
                   self.sock.close()
               self.sock = None
