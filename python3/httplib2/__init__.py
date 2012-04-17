@@ -66,11 +66,14 @@ def has_timeout(timeout):
 __all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
   'RedirectMissingLocation', 'RedirectLimit', 'FailedToDecompressContent', 
   'UnimplementedDigestAuthOptionError', 'UnimplementedHmacDigestAuthOptionError',
-  'debuglevel']
+  'debuglevel', 'RETRIES']
 
 
 # The httplib debug level, set to a non-zero value to get debug output
 debuglevel = 0
+
+# A request will be tried 'RETRIES' times if it fails at the socket/connection level.
+RETRIES = 2
 
 # All exceptions raised here derive from HttpLib2Error
 class HttpLib2Error(Exception): pass
@@ -793,11 +796,29 @@ and more.
     """
     def __init__(self, cache=None, timeout=None, proxy_info=None,
         ca_certs=None, disable_ssl_certificate_validation=False):
-        """The value of proxy_info is a ProxyInfo instance.
+        """If 'cache' is a string then it is used as a directory name for
+        a disk cache. Otherwise it must be an object that supports the
+        same interface as FileCache.
 
-If 'cache' is a string then it is used as a directory name
-for a disk cache. Otherwise it must be an object that supports
-the same interface as FileCache."""
+        All timeouts are in seconds. If None is passed for timeout
+        then Python's default timeout for sockets will be used. See
+        for example the docs of socket.setdefaulttimeout():
+        http://docs.python.org/library/socket.html#socket.setdefaulttimeout
+
+        `proxy_info` may be:
+          - a callable that takes the http scheme ('http' or 'https') and
+            returns a ProxyInfo instance per request. By default, uses
+            ProxyInfo.from_environment.
+          - a ProxyInfo instance (static proxy config).
+          - None (proxy disabled).
+
+        ca_certs is the path of a file containing root CA certificates for SSL
+        server certificate validation.  By default, a CA cert file bundled with
+        httplib2 is used.
+
+        If disable_ssl_certificate_validation is true, SSL cert validation will
+        not be performed.
+"""
         self.proxy_info = proxy_info
         self.ca_certs = ca_certs
         self.disable_ssl_certificate_validation = \
@@ -833,7 +854,7 @@ the same interface as FileCache."""
 
         self.ignore_etag = False
 
-        self.force_exception_to_status_code = False 
+        self.force_exception_to_status_code = False
 
         self.timeout = timeout
 
@@ -864,7 +885,7 @@ the same interface as FileCache."""
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
-        for i in range(2):
+        for i in range(RETRIES):
             try:
                 if conn.sock is None:
                   conn.connect()
@@ -881,14 +902,14 @@ the same interface as FileCache."""
                     raise
             except http.client.HTTPException:
                 if conn.sock is None:
-                    if i == 0:
+                    if i < RETRIES-1:
                         conn.close()
                         conn.connect()
                         continue
                     else:
                         conn.close()
                         raise
-                if i == 0:
+                if i < RETRIES-1:
                     conn.close()
                     conn.connect()
                     continue

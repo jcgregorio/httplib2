@@ -111,6 +111,8 @@ __all__ = ['Http', 'Response', 'ProxyInfo', 'HttpLib2Error',
 # The httplib debug level, set to a non-zero value to get debug output
 debuglevel = 0
 
+# A request will be tried 'RETRIES' times if it fails at the socket/connection level.
+RETRIES = 2
 
 # Python 2.3 support
 if sys.version_info < (2,4):
@@ -1133,8 +1135,7 @@ and more.
     def __init__(self, cache=None, timeout=None,
                  proxy_info=ProxyInfo.from_environment,
                  ca_certs=None, disable_ssl_certificate_validation=False):
-        """
-        If 'cache' is a string then it is used as a directory name for
+        """If 'cache' is a string then it is used as a directory name for
         a disk cache. Otherwise it must be an object that supports the
         same interface as FileCache.
 
@@ -1224,7 +1225,7 @@ and more.
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
-        for i in range(2):
+        for i in range(RETRIES):
             try:
                 if conn.sock is None:
                   conn.connect()
@@ -1249,21 +1250,21 @@ and more.
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
                 if conn.sock is None:
-                    if i == 0:
+                    if i < RETRIES-1:
                         conn.close()
                         conn.connect()
                         continue
                     else:
                         conn.close()
                         raise
-                if i == 0:
+                if i < RETRIES-1:
                     conn.close()
                     conn.connect()
                     continue
             try:
                 response = conn.getresponse()
             except (socket.error, httplib.HTTPException):
-                if i == 0:
+                if i < RETRIES-1:
                     conn.close()
                     conn.connect()
                     continue
