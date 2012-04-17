@@ -117,6 +117,12 @@ The :mod:`httplib2` module defines the following variables:
 
    The amount of debugging information to print. The default is 0.
 
+
+.. data:: RETRIES
+
+   A request will be tried 'RETRIES' times if it fails at the socket/connection level.
+   The default is 2.
+
 The :mod:`httplib2` module may raise the following Exceptions. Note that  there
 is an option that turns exceptions into  normal responses with an HTTP status
 code indicating an error occured. See

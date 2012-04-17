@@ -97,6 +97,11 @@ The \module{httplib2} module defines the following variables:
 The amount of debugging information to print. The default is 0.
 \end{datadesc}
 
+\begin{datadesc}{RETRIES}
+A request will be tried 'RETRIES' times if it fails at the socket/connection level.
+The default is 2.
+\end{datadesc}
+
 % --- 3.3. ---
 % Exceptions are described using a ``excdesc'' block.  This has only
 % one parameter: the exception name.  Exceptions defined as classes in

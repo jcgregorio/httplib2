@@ -1,10 +1,10 @@
 tests:
 	-cd python2 && python2.4 httplib2test.py
 	-cd python2 && python2.5 httplib2test.py
-	#cd python2 && python2.6 httplib2test.py
-	#cd python2 && python2.6 httplib2test_appengine.py
-	cd python2 && ~/bin/python2.7 httplib2test.py
-	cd python2 && ~/bin/python2.7 httplib2test_appengine.py
+	cd python2 && python2.6 httplib2test.py
+	cd python2 && python2.6 httplib2test_appengine.py
+	cd python2 && python2.7 httplib2test.py
+	cd python2 && python2.7 httplib2test_appengine.py
 	cd python3 && ~/bin/python3.2 httplib2test.py
 
 VERSION = $(shell python setup.py --version)
