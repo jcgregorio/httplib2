@@ -994,13 +994,13 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         else:
             host = self.host
             port = self.port
-        
+
         for family, socktype, proto, canonname, sockaddr in socket.getaddrinfo(
             host, port, 0, socket.SOCK_STREAM):
             try:
                 if use_proxy:
                     sock = socks.socksocket(family, socktype, proto)
-                    
+
                     sock.setproxy(proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)
                 else:
                     sock = socket.socket(family, socktype, proto)
@@ -1108,6 +1108,7 @@ try:
             validate_certificate=self.validate_certificate)
         self.response = ResponseDict(response.headers)
         self.response['status'] = str(response.status_code)
+        self.response['reason'] = httplib.responses.get(response.status_code, 'Ok')
         self.response.status = response.status_code
         setattr(self.response, 'read', lambda : response.content)
 
@@ -1654,6 +1655,7 @@ class Response(dict):
             for key, value in info.iteritems():
                 self[key] = value
             self.status = int(self.get('status', self.status))
+            self.reason = self.get('reason', self.reason)
 
 
     def __getattr__(self, name):
