@@ -307,6 +307,15 @@ Http Objects
    'follow_redirects' must be True.
 
 
+.. attribute:: Http.forward_authorization_headers
+
+  If ``False``, which is the default, then Authorization: headers are
+  stripped from redirects. If ``True`` then Authorization: headers are left
+  in place when following redirects. This parameter only applies if following
+  redirects is turned on. Note that turning this on could cause your credentials
+  to leak, so carefully consider the consequences.
+
+
 .. attribute:: Http.force_exception_to_status_code
 
    If ``True`` then no :mod:`httplib2` exceptions will be

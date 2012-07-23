@@ -858,6 +858,9 @@ and more.
 
         self.timeout = timeout
 
+        # Keep Authorization: headers on a redirect.
+        self.forward_authorization_headers = False
+
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
            that can be applied to requests.
@@ -990,6 +993,8 @@ and more.
                         del headers['if-none-match']
                     if 'if-modified-since' in headers:
                         del headers['if-modified-since']
+                    if 'authorization' in headers and not self.forward_authorization_headers:
+                        del headers['authorization']
                     if 'location' in response:
                         location = response['location']
                         old_response = copy.deepcopy(response)
