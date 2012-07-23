@@ -296,6 +296,16 @@ Another way of saying that is for &#8216;follow_all_redirects&#8217; to have any
 </dd></dl>
 
 <dl class="attribute">
+<dt id="httplib2.Http.forward_authorization_headers">
+<tt class="descclassname">Http.</tt><tt class="descname">forward_authorization_headers</tt><a class="headerlink" href="#httplib2.Http.forward_authorization_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <tt class="docutils literal"><span class="pre">False</span></tt>, which is the default, then Authorization: headers are
+stripped from redirects. If <tt class="docutils literal"><span class="pre">True</span></tt> then Authorization: headers are left
+in place when following redirects. This parameter only applies if following
+redirects is turned on. Note that turning this on could cause your credentials
+to leak, so carefully consider the consequences.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="httplib2.Http.force_exception_to_status_code">
 <tt class="descclassname">Http.</tt><tt class="descname">force_exception_to_status_code</tt><a class="headerlink" href="#httplib2.Http.force_exception_to_status_code" title="Permalink to this definition">¶</a></dt>
 <dd><p>If <tt class="docutils literal"><span class="pre">True</span></tt> then no <a class="reference internal" href="#module-httplib2" title="httplib2"><tt class="xref py py-mod docutils literal"><span class="pre">httplib2</span></tt></a> exceptions will be
@@ -515,7 +525,7 @@ request.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2008, Joe Gregorio.
-      Last updated on Apr 17, 2012.
+      Last updated on Jul 23, 2012.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>

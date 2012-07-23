@@ -472,7 +472,7 @@ class Authentication(object):
 
     def request(self, method, request_uri, headers, content):
         """Modify the request headers to add the appropriate
-        Authorization header. Over-rise this in sub-classes."""
+        Authorization header. Over-ride this in sub-classes."""
         pass
 
     def response(self, response, content):
@@ -1231,6 +1231,9 @@ and more.
 
         self.timeout = timeout
 
+        # Keep Authorization: headers on a redirect.
+        self.forward_authorization_headers = False
+
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
            that can be applied to requests.
@@ -1364,6 +1367,8 @@ and more.
                         del headers['if-none-match']
                     if headers.has_key('if-modified-since'):
                         del headers['if-modified-since']
+                    if 'authorization' in headers and not self.forward_authorization_headers:
+                        del headers['authorization']
                     if response.has_key('location'):
                         location = response['location']
                         old_response = copy.deepcopy(response)

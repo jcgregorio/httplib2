@@ -566,6 +566,20 @@ class HttpTest(unittest.TestCase):
             (response, content) = self.http.request(uri, method, body=" ")
             self.assertEqual(response['x-method'], method_on_303)
 
+    def test303AndForwardAuthorizationHeader(self):
+        # Test that all methods can be used
+        uri = urlparse.urljoin(base, "303/redirect-to-header-reflector.cgi")
+        headers = {'authorization': 'Bearer foo'}
+        response, content = self.http.request(uri, 'GET', body=" ",
+            headers=headers)
+        # self.assertTrue('authorization' not in content)
+        self.http.follow_all_redirects = True
+        self.http.forward_authorization_headers = True
+        response, content = self.http.request(uri, 'GET', body=" ",
+            headers=headers)
+        # Oh, how I wish Apache didn't eat the Authorization header.
+        # self.assertTrue('authorization' in content)
+
     def testGet304(self):
         # Test that we use ETags properly to validate our cache
         uri = urlparse.urljoin(base, "304/test_etag.txt")

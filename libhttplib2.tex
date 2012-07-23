@@ -263,6 +263,14 @@ Another way of saying that is for 'follow_all_redirects' to have any affect, 'fo
 must be True.
 \end{memberdesc}
 
+\begin{memberdesc}[Http]{forward_authorization_headers}
+If \code{False}, which is the default, then Authorization: headers are
+stripped from redirects. If \code{True} then Authorization: headers are left
+in place when following redirects. This parameter only applies if following
+redirects is turned on. Note that turning this on could cause your credentials
+to leak, so carefully consider the consequences.
+\end{memberdesc}
+
 \begin{memberdesc}[Http]{follow_all_redirects}
 If \code{False}, which is the default, only safe redirects are followed, where
 safe means that the client is only doing a \code{GET} or \code{HEAD} on the
