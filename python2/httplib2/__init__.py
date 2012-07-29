@@ -1654,11 +1654,11 @@ class Response(dict):
             self.version = info.version
         elif isinstance(info, email.Message.Message):
             for key, value in info.items():
-                self[key] = value
+                self[key.lower()] = value
             self.status = int(self['status'])
         else:
             for key, value in info.iteritems():
-                self[key] = value
+                self[key.lower()] = value
             self.status = int(self.get('status', self.status))
             self.reason = self.get('reason', self.reason)
 
