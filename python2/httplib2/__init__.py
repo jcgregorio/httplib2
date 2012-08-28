@@ -1137,10 +1137,10 @@ try:
   class AppEngineHttpsConnection(AppEngineHttpConnection):
     """Same as AppEngineHttpConnection, but for HTTPS URIs."""
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None, proxy_info=None, cacerts=None,
+                 strict=None, timeout=None, proxy_info=None, ca_certs=None,
                  disable_ssl_certificate_validation=False):
       AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file,
-          strict, timeout, proxy_info, cacerts, disable_ssl_certificate_validation)
+          strict, timeout, proxy_info, ca_certs, disable_ssl_certificate_validation)
       self.scheme = 'https'
 
   # Update the connection classes to use the Googel App Engine specific ones.
