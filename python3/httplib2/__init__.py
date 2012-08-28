@@ -24,7 +24,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Louis Nyffenegger",
     "Mark Pilgrim"]
 __license__ = "MIT"
-__version__ = "0.7.4"
+__version__ = "0.7.5"
 
 import re 
 import sys 
@@ -780,6 +780,10 @@ class HTTPSConnectionWithTimeout(http.client.HTTPSConnection):
                                              check_hostname=True)
 
 
+SCHEME_TO_CONNECTION = {
+    'http': HTTPConnectionWithTimeout,
+    'https': HTTPSConnectionWithTimeout
+    }
 
 class Http(object):
     """An HTTP client that handles:
@@ -934,7 +938,7 @@ and more.
             else:
                 content = b""
                 if method == "HEAD":
-                    response.close()
+                    conn.close()
                 else:
                     content = response.read()
                 response = Response(response)
@@ -1067,7 +1071,7 @@ a string that contains the response entity body.
                 conn = self.connections[conn_key]
             else:
                 if not connection_type:
-                    connection_type = (scheme == 'https') and HTTPSConnectionWithTimeout or HTTPConnectionWithTimeout
+                    connection_type = SCHEME_TO_CONNECTION[scheme]
                 certs = list(self.certificates.iter(authority))
                 if issubclass(connection_type, HTTPSConnectionWithTimeout):
                     if certs:
@@ -1107,7 +1111,7 @@ a string that contains the response entity body.
                           if v.startswith('=?') and v.endswith('?='):
                             info.replace_header(k,
                                                 str(*email.header.decode_header(v)[0]))
-                    except IndexError:
+                    except (IndexError, ValueError):
                         self.cache.delete(cachekey)
                         cachekey = None
                         cached_value = None
