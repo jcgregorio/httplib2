@@ -13,7 +13,7 @@ if "GET" == method:
         print "Status: 200 Ok"
         print "ETag: 123456789" 
         print ""
-elif method in ["PUT", "DELETE", "PATCH"]:
+elif method in ["PUT", "PATCH", "DELETE"]:
     if "123456789" == os.environ.get('HTTP_IF_MATCH', ''):
         print "Status: 200 Ok"
         print ""
