@@ -1,3 +1,22 @@
+0.7.5
+   Keys are lowercase in a Response object, regardless of how Response object is constructed.
+   Add control so that Authorization: headers aren't forwarded on a 3xx response by default.
+   Set the reason correctly when running on App Engine. Patch from Alain Vongsouvanh. Reviewed in http://codereview.appspot.com/6422051/
+   Fix proxy socks for SSL connections. Fixes issue #199.
+   You can now set httplib2.RETRIES to the number of retries before a request
+     is considered to fail It is set to a default of 2 to mimic the traditional
+     behavior of httplib2.
+
+   The following issues have been addressed:
+
+     223 HEAD requests fail calling the close() method of ResponseDict instance.
+     222 Can't disable cert validation in appengine
+     204 Credentials can leak in HTTP redirects
+     210 Different API between Python 2 and Python 3 version breaks wsgi_intercept
+     214 ValueError on malformated cache entries
+     204 Credentials can leak in HTTP redirects
+
+
 0.7.3
     ProxyInfo objects now can construct themselves from environment
     variables commonly-used in Unix environments. By default, the Http

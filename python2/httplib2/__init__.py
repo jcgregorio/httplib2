@@ -22,7 +22,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Sam Ruby",
     "Louis Nyffenegger"]
 __license__ = "MIT"
-__version__ = "0.7.4"
+__version__ = "0.7.5"
 
 import re
 import sys
@@ -1084,7 +1084,7 @@ try:
     """
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None, ca_certs=None,
-                 disable_certificate_validation=False):
+                 disable_ssl_certificate_validation=False):
       self.host = host
       self.port = port
       self.timeout = timeout
@@ -1092,7 +1092,7 @@ try:
         raise NotSupportedOnThisPlatform()
       self.response = None
       self.scheme = 'http'
-      self.validate_certificate = not disable_certificate_validation
+      self.validate_certificate = not disable_ssl_certificate_validation
       self.sock = True
 
     def request(self, method, url, body, headers):
@@ -1137,9 +1137,10 @@ try:
   class AppEngineHttpsConnection(AppEngineHttpConnection):
     """Same as AppEngineHttpConnection, but for HTTPS URIs."""
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=None, proxy_info=None):
+                 strict=None, timeout=None, proxy_info=None, cacerts=None,
+                 disable_ssl_certificate_validation=False):
       AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file,
-          strict, timeout, proxy_info)
+          strict, timeout, proxy_info, cacerts, disable_ssl_certificate_validation)
       self.scheme = 'https'
 
   # Update the connection classes to use the Googel App Engine specific ones.
@@ -1309,7 +1310,7 @@ and more.
             else:
                 content = ""
                 if method == "HEAD":
-                    response.close()
+                    conn.close()
                 else:
                     content = response.read()
                 response = Response(response)
@@ -1445,7 +1446,7 @@ a string that contains the response entity body.
                 if not connection_type:
                   connection_type = SCHEME_TO_CONNECTION[scheme]
                 certs = list(self.certificates.iter(authority))
-                if issubclass(connection_type, HTTPSConnectionWithTimeout):
+                if scheme == 'https':
                     if certs:
                         conn = self.connections[conn_key] = connection_type(
                                 authority, key_file=certs[0][0],
@@ -1487,7 +1488,7 @@ a string that contains the response entity body.
                         feedparser.feed(info)
                         info = feedparser.close()
                         feedparser._parse = None
-                    except IndexError:
+                    except (IndexError, ValueError):
                         self.cache.delete(cachekey)
                         cachekey = None
                         cached_value = None

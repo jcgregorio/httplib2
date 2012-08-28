@@ -193,7 +193,7 @@ code indicating an error occured. See
 .. % type name like methoddesc.
 
 
-.. class:: Http([cache=None], [timeout=None], [proxy_info=None], [ca_certs=None], [disable_ssl_certificate_validation=False])
+.. class:: Http([cache=None], [timeout=None], [proxy_info==ProxyInfo.from_environment], [ca_certs=None], [disable_ssl_certificate_validation=False])
 
    The class that represents a client HTTP interface. The *cache* parameter is
    either the name of a directory to be used as a flat file cache, or it must an
