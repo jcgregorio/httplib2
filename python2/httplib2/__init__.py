@@ -1102,6 +1102,10 @@ try:
         netloc = '%s:%s' % (self.host, self.port)
       absolute_uri = '%s://%s%s' % (self.scheme, netloc, url)
       try:
+        try: # 'body' can be a stream.
+          body = body.read()
+        except AttributeError:
+          pass
         response = fetch(absolute_uri, payload=body, method=method,
             headers=headers, allow_truncated=False, follow_redirects=False,
             deadline=self.timeout,
