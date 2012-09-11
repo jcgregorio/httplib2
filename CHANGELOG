@@ -1,3 +1,6 @@
+0.7.6
+   Fixes for App Engine 2.7.
+
 0.7.5
    Keys are lowercase in a Response object, regardless of how Response object is constructed.
    Add control so that Authorization: headers aren't forwarded on a 3xx response by default.
