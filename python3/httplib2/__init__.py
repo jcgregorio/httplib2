@@ -865,6 +865,20 @@ and more.
         # Keep Authorization: headers on a redirect.
         self.forward_authorization_headers = False
 
+    def __getstate__(self):
+        state_dict = copy.copy(self.__dict__)
+        # In case request is augmented by some foreign object such as
+        # credentials which handle auth
+        if 'request' in state_dict:
+            del state_dict['request']
+        if 'connections' in state_dict:
+            del state_dict['connections']
+        return state_dict
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.connections = {}
+
     def _auth_from_challenge(self, host, request_uri, headers, response, content):
         """A generator that creates Authorization objects
            that can be applied to requests.
