@@ -732,6 +732,56 @@ p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_po
     return socks and (self.proxy_host != None) and (self.proxy_port != None)
 
 
+def proxy_info_from_environment(method='http'):
+    """
+    Read proxy info from the environment variables.
+    """
+    if method not in ('http', 'https'):
+      return
+
+    env_var = method + '_proxy'
+    url = os.environ.get(env_var, os.environ.get(env_var.upper()))
+    if not url:
+      return
+    return proxy_info_from_url(url, method)
+
+
+def proxy_info_from_url(url, method='http'):
+    """
+    Construct a ProxyInfo from a URL (such as http_proxy env var)
+    """
+    url = urllib.parse.urlparse(url)
+    username = None
+    password = None
+    port = None
+    if '@' in url[1]:
+      ident, host_port = url[1].split('@', 1)
+      if ':' in ident:
+        username, password = ident.split(':', 1)
+      else:
+        password = ident
+    else:
+      host_port = url[1]
+    if ':' in host_port:
+      host, port = host_port.split(':', 1)
+    else:
+      host = host_port
+
+    if port:
+        port = int(port)
+    else:
+        port = dict(https=443, http=80)[method]
+
+    proxy_type = 3 # socks.PROXY_TYPE_HTTP
+    return ProxyInfo(
+        proxy_type = proxy_type,
+        proxy_host = host,
+        proxy_port = port,
+        proxy_user = username or None,
+        proxy_pass = password or None,
+    )
+
+
 class HTTPConnectionWithTimeout(http.client.HTTPConnection):
     """HTTPConnection subclass that supports timeouts
 
@@ -798,8 +848,9 @@ class Http(object):
 
 and more.
     """
-    def __init__(self, cache=None, timeout=None, proxy_info=None,
-        ca_certs=None, disable_ssl_certificate_validation=False):
+    def __init__(self, cache=None, timeout=None,
+                 proxy_info=proxy_info_from_environment,
+                 ca_certs=None, disable_ssl_certificate_validation=False):
         """If 'cache' is a string then it is used as a directory name for
         a disk cache. Otherwise it must be an object that supports the
         same interface as FileCache.
@@ -812,7 +863,7 @@ and more.
         `proxy_info` may be:
           - a callable that takes the http scheme ('http' or 'https') and
             returns a ProxyInfo instance per request. By default, uses
-            ProxyInfo.from_environment.
+            proxy_info_from_environment.
           - a ProxyInfo instance (static proxy config).
           - None (proxy disabled).
 
