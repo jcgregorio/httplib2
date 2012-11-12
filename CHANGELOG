@@ -1,3 +1,15 @@
+0.7.7
+   More fixes for App Engine, now less likely to swallow important exceptions.
+   Adding proxy_info_from_* methods to Python3. Reviewed in https://codereview.appspot.com/6588078/.
+   Added GeoTrust cert
+   Make httplib2.Http() instances pickleable. Reviewed in https://codereview.appspot.com/6506074/
+
+   The following issues have been fixed:
+
+   229 python3 httplib2 clobbers multiple headers of same key
+   230 Expose meaningful exception for App Engine URLFetch ResponseTooLargeError
+   231 Expose App Engine URLFetch DeadlineExceededError for debugging purposes
+
 0.7.6
    Fixes for App Engine 2.7.
 
