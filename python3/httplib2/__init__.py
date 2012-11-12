@@ -24,7 +24,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Louis Nyffenegger",
     "Mark Pilgrim"]
 __license__ = "MIT"
-__version__ = "0.7.6"
+__version__ = "0.7.7"
 
 import re 
 import sys 
@@ -1322,8 +1322,12 @@ class Response(dict):
         # info is either an email.message or 
         # an httplib.HTTPResponse object.
         if isinstance(info, http.client.HTTPResponse):
-            for key, value in info.getheaders(): 
-                self[key.lower()] = value 
+            for key, value in info.getheaders():
+                key = key.lower()
+                prev = self.get(key)
+                if prev is not None:
+                    value = ', '.join((prev, value))
+                self[key] = value
             self.status = info.status
             self['status'] = str(self.status)
             self.reason = info.reason
