@@ -1120,8 +1120,6 @@ try:
       # Make sure the exceptions raised match the exceptions expected.
       except InvalidURLError:
         raise socket.gaierror('')
-      except (DownloadError, ResponseTooLargeError, SSLCertificateError):
-        raise httplib.HTTPException()
 
     def getresponse(self):
       if self.response:
