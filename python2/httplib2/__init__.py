@@ -1063,10 +1063,6 @@ try:
     raise ImportError  # Bail out; we're not actually running on App Engine.
   from google.appengine.api.urlfetch import fetch
   from google.appengine.api.urlfetch import InvalidURLError
-  from google.appengine.api.urlfetch import DownloadError
-  from google.appengine.api.urlfetch import ResponseTooLargeError
-  from google.appengine.api.urlfetch import SSLCertificateError
-
 
   class ResponseDict(dict):
     """Dictionary with a read() method; can pass off as httplib.HTTPResponse."""
