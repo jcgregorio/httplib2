@@ -1064,83 +1064,33 @@ try:
   from google.appengine.api.urlfetch import fetch
   from google.appengine.api.urlfetch import InvalidURLError
 
-  class ResponseDict(dict):
-    """Dictionary with a read() method; can pass off as httplib.HTTPResponse."""
-    def __init__(self, *args, **kwargs):
-      self.content = kwargs.pop('content', None)
-      return super(ResponseDict, self).__init__(*args, **kwargs)
+  def _new_fixed_fetch(validate_certificate):
+    def fixed_fetch(url, payload=None, method="GET", headers={}, allow_truncated=False, follow_redirects=True, deadline=5):
+      return fetch(url, payload=payload, method=method, headers=header, allow_truncated=allow_truncated, follow_redirects=follow_redirects, deadline=deadline, validate_certificate=validate_certificate)
+    return fixed_fetch
 
-    def read(self):
-      return self.content
+  class AppEngineHttpConnection(httplib.HTTPConnection):
+    """Use httplib on App Engine, but compensate for its weirdness.
 
-
-  class AppEngineHttpConnection(object):
-    """Emulates an httplib.HTTPConnection object, but actually uses the Google
-    App Engine urlfetch library. This allows the timeout to be properly used on
-    Google App Engine, and avoids using httplib, which on Google App Engine is
-    just another wrapper around urlfetch.
+    The parameters key_file, cert_file, proxy_info, ca_certs, and
+    disable_ssl_certificate_validation are all dropped on the ground.
     """
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None, ca_certs=None,
                  disable_ssl_certificate_validation=False):
-      self.host = host
-      self.port = port
-      self.timeout = timeout
-      if key_file or cert_file or proxy_info or ca_certs:
-        raise NotSupportedOnThisPlatform()
-      self.response = None
-      self.scheme = 'http'
-      self.validate_certificate = not disable_ssl_certificate_validation
-      self.sock = True
+      httplib.HTTPConnection.__init__(self, host, port=port, strict=strict,
+                                      timeout=timeout)
 
-    def request(self, method, url, body, headers):
-      # Calculate the absolute URI, which fetch requires
-      netloc = self.host
-      if self.port:
-        netloc = '%s:%s' % (self.host, self.port)
-      absolute_uri = '%s://%s%s' % (self.scheme, netloc, url)
-      try:
-        try: # 'body' can be a stream.
-          body = body.read()
-        except AttributeError:
-          pass
-        response = fetch(absolute_uri, payload=body, method=method,
-            headers=headers, allow_truncated=False, follow_redirects=False,
-            deadline=self.timeout,
-            validate_certificate=self.validate_certificate)
-        self.response = ResponseDict(response.headers, content=response.content)
-        self.response['status'] = str(response.status_code)
-        self.response['reason'] = httplib.responses.get(response.status_code, 'Ok')
-        self.response.status = response.status_code
-
-      # Make sure the exceptions raised match the exceptions expected.
-      except InvalidURLError:
-        raise socket.gaierror('')
-
-    def getresponse(self):
-      if self.response:
-        return self.response
-      else:
-        raise httplib.HTTPException()
-
-    def set_debuglevel(self, level):
-      pass
-
-    def connect(self):
-      pass
-
-    def close(self):
-      pass
-
-
-  class AppEngineHttpsConnection(AppEngineHttpConnection):
+  class AppEngineHttpsConnection(httplib.HTTPSConnection):
     """Same as AppEngineHttpConnection, but for HTTPS URIs."""
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  strict=None, timeout=None, proxy_info=None, ca_certs=None,
                  disable_ssl_certificate_validation=False):
-      AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file,
-          strict, timeout, proxy_info, ca_certs, disable_ssl_certificate_validation)
-      self.scheme = 'https'
+      httplib.HTTPSConnection.__init__(self, host, port=port,
+                                        key_file=key_file,
+                                        cert_file=cert_file, strict=strict,
+                                        timeout=timeout)
+      self._fetch = _new_fixed_fetch(not disable_ssl_certificate_validation)
 
   # Update the connection classes to use the Googel App Engine specific ones.
   SCHEME_TO_CONNECTION = {
@@ -1277,7 +1227,7 @@ and more.
     def _conn_request(self, conn, request_uri, method, body, headers):
         for i in range(RETRIES):
             try:
-                if conn.sock is None:
+                if hasattr(conn, 'sock') and conn.sock is None:
                   conn.connect()
                 conn.request(method, request_uri, body, headers)
             except socket.timeout:
@@ -1299,7 +1249,7 @@ and more.
             except httplib.HTTPException:
                 # Just because the server closed the connection doesn't apparently mean
                 # that the server didn't send a response.
-                if conn.sock is None:
+                if hasattr(conn, 'sock') and conn.sock is None:
                     if i < RETRIES-1:
                         conn.close()
                         conn.connect()
