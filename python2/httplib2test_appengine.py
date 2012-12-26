@@ -28,11 +28,13 @@ testbed = testbed.Testbed()
 testbed.activate()
 testbed.init_urlfetch_stub()
 
+from google.appengine.runtime import DeadlineExceededError
+
 import httplib2
 
 class AppEngineHttpTest(unittest.TestCase):
     def setUp(self):
-        if os.path.exists(cacheDirName): 
+        if os.path.exists(cacheDirName):
             [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
 
         if sys.version_info < (2, 6):
@@ -45,20 +47,36 @@ class AppEngineHttpTest(unittest.TestCase):
         response, content = h.request("http://bitworking.org")
         self.assertEqual(httplib2.SCHEME_TO_CONNECTION['https'],
                          httplib2.AppEngineHttpsConnection)
-        print h.connections
         self.assertEquals(1, len(h.connections))
-        self.assertEquals(type(h.connections['http:bitworking.org']),
-                          httplib2.AppEngineHttpConnection)
         self.assertEquals(response.status, 200)
         self.assertEquals(response['status'], '200')
 
-    def test_no_key_or_cert_file(self):
+    # It would be great to run the test below, but it really tests the
+    # aberrant behavior of httplib on App Engine, but that special aberrant
+    # httplib only appears when actually running on App Engine and not when
+    # running via the SDK. When running via the SDK the httplib in std lib is
+    # loaded, which throws a different error when a timeout occurs.
+    #
+    #def test_timeout(self):
+    #    # The script waits 3 seconds, so a timeout of more than that should succeed.
+    #    h = httplib2.Http(timeout=7)
+    #    r, c = h.request('http://bitworking.org/projects/httplib2/test/timeout/timeout.cgi')
+    #
+    #    import httplib
+    #    print httplib.__file__
+    #    h = httplib2.Http(timeout=1)
+    #    try:
+    #      r, c = h.request('http://bitworking.org/projects/httplib2/test/timeout/timeout.cgi')
+    #      self.fail('Timeout should have raised an exception.')
+    #    except DeadlineExceededError:
+    #      pass
+
+
+
+    def test_proxy_info_ignored(self):
         h = httplib2.Http(proxy_info='foo.txt')
-        try:
-          response, content = h.request("http://bitworking.org")
-          self.fail('Should raise exception.')
-        except httplib2.NotSupportedOnThisPlatform:
-          pass
+        response, content = h.request("http://bitworking.org")
+        self.assertEquals(response.status, 200)
 
 if __name__ == '__main__':
     unittest.main()
