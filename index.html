@@ -8,11 +8,11 @@
         <!--#include virtual="titlebar.html" -->
 
         <div class="content">
-            
+
             <div>
 
                 <h2>Httplib2</h2>
-                <p>A comprehensive HTTP client library, <code>httplib2.py</code> 
+                <p>A comprehensive HTTP client library, <code>httplib2.py</code>
                 supports many features left out of other HTTP libraries.
                 </p>
                 <dl>
@@ -21,13 +21,13 @@
                     </dd>
 
                     <dt>Keep-Alive</dt>
-                    <dd>Supports HTTP 1.1 Keep-Alive, keeping the socket 
+                    <dd>Supports HTTP 1.1 Keep-Alive, keeping the socket
                     open and performing multiple requests over the same connection
                     if possible.
                     </dd>
 
                     <dt>Authentication</dt>
-                    <dd>The following types of HTTP Authentication are supported. 
+                    <dd>The following types of HTTP Authentication are supported.
                     These can be used over both HTTP and HTTPS.
                     <ul>
                         <li><a href="http://www.faqs.org/rfcs/rfc2617.html">Digest</a></li>
@@ -55,7 +55,7 @@
 
                     <dt>Lost update support</dt>
                     <dd>Automatically adds back ETags into PUT requests to resources
-                    we have already cached. This implements Section 3.2 of 
+                    we have already cached. This implements Section 3.2 of
                     <a href="http://www.w3.org/1999/04/Editing/#Table">Detecting the Lost Update Problem Using Unreserved Checkout</a></dd>
 
                     <dt>Unit Tested</dt>
@@ -83,8 +83,8 @@ and Basic authentication:</p>
 <pre><code>import httplib2
 h = httplib2.Http(".cache")
 h.add_credentials('name', 'password')
-resp, content = h.request("https://example.org/chap/2", 
-    "PUT", body="This is text", 
+resp, content = h.request("https://example.org/chap/2",
+    "PUT", body="This is text",
     headers={'content-type':'text/plain'} )
 </code></pre>
 
@@ -95,11 +95,11 @@ resp, content = h.request("https://example.org/chap/2",
 h = httplib2.Http(".cache")
 resp, content = h.request("http://bitworking.org/")
  ...
-resp, content = h.request("http://bitworking.org/", 
+resp, content = h.request("http://bitworking.org/",
     headers={'cache-control':'no-cache'})
 </code></pre>
 
-<p>The first request will be cached and since this is a request to 
+<p>The first request will be cached and since this is a request to
 bitworking.org it will be set to be cached for two hours, because
 that is how I have my server configured.
 Any subsequent GET to that URI will return the value from the
@@ -117,8 +117,8 @@ any libraries beyond what is found in the core library.</p>
 
 <h3>Download/Installation</h3>
 
-<p>The latest release of httplib2 is 0.3.0 and 
-can be <a href="dist">downloaded from the from 
+<p>The latest release of httplib2 is 0.3.0 and
+can be <a href="dist">downloaded from the from
     the dist directory</a>. See the
 <a href="CHANGELOG">CHANGELOG</a> for what's new in this
 version.</p>
@@ -139,13 +139,13 @@ command:</p>
   subversion repository.</p>
 
 <pre>svn co https://httplib2.svn.sourceforge.net/svnroot/httplib2/trunk httplib2</pre>
-  
+
 
 <h3>Documentation</h3>
 
 <p>In addition to the <a href="ref/">Python library style documentation</a> there
 are also two articles on XML.com, <a href="http://www.xml.com/pub/a/2006/02/01/doing-http-caching-right-introducing-httplib2.html">
-    Doing HTTP Caching Right: Introducing httplib2</a> and 
+    Doing HTTP Caching Right: Introducing httplib2</a> and
 <a href="http://www.xml.com/pub/a/2006/03/29/httplib2-http-persistence-and-authentication.html">
 httplib2: HTTP Persistence and Authentication </a>.
 
@@ -153,7 +153,7 @@ httplib2: HTTP Persistence and Authentication </a>.
 
 <h3>Feedback</h3>
 
-<p>Bugs and enhancement requests are handled through  
+<p>Bugs and enhancement requests are handled through
 <a href="http://sourceforge.net/projects/httplib2/">SourceForge</a>, and anything is up for discussion
 on the <a href="http://sourceforge.net/mail/?group_id=161082">httplib2 mailing list</a>.
 </p>
@@ -163,8 +163,8 @@ on the <a href="http://sourceforge.net/mail/?group_id=161082">httplib2 mailing l
 <p>This module is not perfect and needs the following:</p>
 <ul>
     <li>Support for Proxies</li>
-    <li>A pluggable store for the cache is in place, with plugins for 
-    flat files and memcached. 
+    <li>A pluggable store for the cache is in place, with plugins for
+    flat files and memcached.
     I eventually want to have plugins that allow keeping the cache in Berkeley DB, MySQL, etc.</li>
     <li>More unit tests</li>
 </ul>
@@ -195,7 +195,7 @@ on the <a href="http://sourceforge.net/mail/?group_id=161082">httplib2 mailing l
        <dd> (Your Name Here) </dd>
    </dl>
 </p>
-    
+
   <p style="font-size: small">This page last updated on: $LastChangedDate$.</p>
 
             </div>

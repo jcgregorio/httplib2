@@ -1,11 +1,11 @@
 .. % Template for a library manual section.
 .. % PLEASE REMOVE THE COMMENTS AFTER USING THE TEMPLATE
-.. % 
+.. %
 .. % Complete documentation on the extended LaTeX markup used for Python
 .. % documentation is available in ``Documenting Python'', which is part
 .. % of the standard documentation for Python.  It may be found online
 .. % at:
-.. % 
+.. %
 .. % http://www.python.org/doc/current/doc/doc.html
 .. % ==== 0. ====
 .. % Copy this file to <mydir>/lib<mymodule>.tex, and edit that file
@@ -29,7 +29,7 @@
 .. % Choose one of these to specify the module module name.  If there's
 .. % an underscore in the name, use
 .. % \declaremodule[modname]{...}{mod_name} instead.
-.. % 
+.. %
 .. % not standard, in Python
 .. % Portability statement:  Uncomment and fill in the parameter to specify the
 .. % availability of the module.  The parameter can be Unix, IRIX, SunOS, Mac,
@@ -37,7 +37,7 @@
 .. % statement will say ``Macintosh'' and the Module Index may say ``Mac''.
 .. % Please use a name that has already been used whenever applicable.  If this
 .. % is omitted, no availability statement is produced or implied.
-.. % 
+.. %
 .. % \platform{Unix}
 .. % These apply to all modules, and may be given more than once:
 .. % Author of the module code;
@@ -180,16 +180,16 @@ code indicating an error occured. See
 
 .. % ---- 3.4. ----
 .. % Other standard environments:
-.. % 
-.. % classdesc	- Python classes; same arguments are funcdesc
-.. % methoddesc	- methods, like funcdesc but has an optional parameter
+.. %
+.. % classdesc  - Python classes; same arguments are funcdesc
+.. % methoddesc - methods, like funcdesc but has an optional parameter
 .. % to give the type name: \begin{methoddesc}[mytype]{name}{args}
 .. % By default, the type name will be the name of the
 .. % last class defined using classdesc.  The type name
 .. % is required if the type is implemented in C (because
 .. % there's no classdesc) or if the class isn't directly
 .. % documented (if it's private).
-.. % memberdesc	- data members, like datadesc, but with an optional
+.. % memberdesc - data members, like datadesc, but with an optional
 .. % type name like methoddesc.
 
 
@@ -441,8 +441,8 @@ directory ``.cache``.  ::
    import httplib2
    h = httplib2.Http(".cache")
    h.add_credentials('name', 'password')
-   resp, content = h.request("https://example.org/chap/2", 
-       "PUT", body="This is text", 
+   resp, content = h.request("https://example.org/chap/2",
+       "PUT", body="This is text",
        headers={'content-type':'text/plain'} )
 
 Here is an example that connects to a server that  supports the Atom Publishing

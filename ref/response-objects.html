@@ -103,7 +103,7 @@ redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,
 including <code>previous</code> responses so you can determine the entire
 chain of redirects. If <tt class="member">Http.force_exception_to_status_code</tt> is <code>True</code>
-and the number of redirects has exceeded the number of allowed number 
+and the number of redirects has exceeded the number of allowed number
 of redirects then the <tt class="class">Response</tt> object will report the error
 in the status code, but the complete chain of previous responses will
 still be in tact.
