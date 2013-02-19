@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import zlib 
+import zlib
 import os
 from StringIO import StringIO
 

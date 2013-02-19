@@ -49,14 +49,14 @@
 <!--End of Navigation Panel-->
 
 <h1><a name="SECTION002100000000000000000">
-1.1 <tt class="module">httplib2</tt> 
+1.1 <tt class="module">httplib2</tt>
          A comprehensive HTTP client library.  </a>
 </h1>
 
 <p>
-<a name="module-httplib2"></a>			
+<a name="module-httplib2"></a>
 <p>
-				
+
 <p>
 
 <p>
@@ -65,26 +65,26 @@ The <tt class="module">httplib2</tt> module is a comprehensive HTTP client libra
 <p>
 <dl>
 <dt><strong>HTTP and HTTPS</strong></dt>
-<dd>HTTPS support is only available if the socket module was compiled with SSL support. 
+<dd>HTTPS support is only available if the socket module was compiled with SSL support.
 </dd>
 <dt><strong>Keep-Alive</strong></dt>
-<dd>Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible. 
+<dd>Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible.
 </dd>
 <dt><strong>Authentication</strong></dt>
 <dd>The following three types of HTTP Authentication are supported. These can be used over both HTTP and HTTPS.
-    
+
 <ul>
 <li>Digest
 </li>
 <li>Basic
 </li>
 <li>WSSE
-    
+
 </li>
 </ul>
 </dd>
 <dt><strong>Caching</strong></dt>
-<dd>The module can optionally operate with a private cache that understands the Cache-Control: header and uses both the ETag and Last-Modified cache validators. 
+<dd>The module can optionally operate with a private cache that understands the Cache-Control: header and uses both the ETag and Last-Modified cache validators.
 </dd>
 <dt><strong>All Methods</strong></dt>
 <dd>The module can handle any HTTP request method, not just GET and POST.
@@ -113,8 +113,8 @@ The amount of debugging information to print. The default is 0.
 </dd></dl>
 
 <p>
-The <tt class="module">httplib2</tt> module may raise the following Exceptions. Note that 
-there is an option that turns exceptions into 
+The <tt class="module">httplib2</tt> module may raise the following Exceptions. Note that
+there is an option that turns exceptions into
 normal responses with an HTTP status code indicating
 an error occured. See <tt class="member">Http.force_exception_to_status_code</tt>
 
@@ -127,7 +127,7 @@ The Base Exception for all exceptions raised by httplib2.
 <p>
 <dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-4' xml:id='l2h-4' class="exception">RedirectMissingLocation</tt></b></dt>
 <dd>
-A 3xx redirect response code was provided but no Location: header 
+A 3xx redirect response code was provided but no Location: header
 was provided to point to the new location.
 </dd></dl>
 
@@ -177,7 +177,7 @@ are unfamiliar with.
 <dd>
 The class that represents a client HTTP interface.
 The <var>cache</var> parameter is either the name of a directory
-to be used as a flat file cache, or it must an object that 
+to be used as a flat file cache, or it must an object that
 implements the required caching interface.
 The <var>timeout</var> parameter is the socket level timeout.
 The <var>proxy_info</var> is an instance of <tt class="class">ProxyInfo</tt> and is supplied
@@ -190,9 +190,9 @@ installed for proxy support to work.
   <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-12' xml:id='l2h-12' class="class">Response</tt></b>(</nobr></td>
   <td><var>info</var>)</td></tr></table></dt>
 <dd>
-Response is a subclass of <tt class="class">dict</tt> and instances of this 
+Response is a subclass of <tt class="class">dict</tt> and instances of this
 class are returned from calls
-to Http.request. The <var>info</var> parameter is either 
+to Http.request. The <var>info</var> parameter is either
 an <tt class="class">rfc822.Message</tt> or an <tt class="class">httplib.HTTPResponse</tt> object.
 </dl>
 
@@ -206,7 +206,7 @@ The <var>dir_name</var> parameter is
 the name of the directory to use. If the directory does
 not exist then FileCache attempts to create the directory.
 The optional <var>safe</var> parameter is a funtion which generates
-the cache filename for each URI. A FileCache object is 
+the cache filename for each URI. A FileCache object is
 constructed and used for caching when you pass a directory name
 into the constructor of <tt class="class">Http</tt>.
 </dl>
@@ -219,7 +219,7 @@ into the constructor of <tt class="class">Http</tt>.
 The parameter <var>proxy_type</var> must be set to one of socks.PROXY_TYPE_XXX
 constants. The <var>proxy_host</var> and <var>proxy_port</var> must be set to the location
 of the proxy. The optional <var>proxy_rdns</var> should be set to True if
-the DNS server on the proxy should be used. The <var>proxy_user</var> and 
+the DNS server on the proxy should be used. The <var>proxy_user</var> and
 <var>proxy_pass</var> are supplied when the proxy is protected by authentication.
 </dl>
 

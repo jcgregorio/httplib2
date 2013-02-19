@@ -8,7 +8,7 @@ pkgdir = {'': 'python%s' % sys.version_info[0]}
 VERSION = '0.7.7'
 
 setup(name='httplib2',
-        version=VERSION, 
+        version=VERSION,
         author='Joe Gregorio',
         author_email='joe@bitworking.org',
         url='http://code.google.com/p/httplib2/',
@@ -20,11 +20,11 @@ setup(name='httplib2',
 A comprehensive HTTP client library, ``httplib2`` supports many features left out of other HTTP libraries.
 
 **HTTP and HTTPS**
-  HTTPS support is only available if the socket module was compiled with SSL support. 
- 
+  HTTPS support is only available if the socket module was compiled with SSL support.
+
 
 **Keep-Alive**
-  Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible. 
+  Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible.
 
 
 **Authentication**
@@ -35,7 +35,7 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
   * WSSE
 
 **Caching**
-  The module can optionally operate with a private cache that understands the Cache-Control: 
+  The module can optionally operate with a private cache that understands the Cache-Control:
   header and uses both the ETag and Last-Modified cache validators. Both file system
   and memcached based caches are supported.
 

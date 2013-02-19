@@ -20,14 +20,14 @@
 % appropriate.
 
 
-\section{\module{httplib2} 
+\section{\module{httplib2}
          A comprehensive HTTP client library.  }
 
 % Choose one of these to specify the module module name.  If there's
 % an underscore in the name, use
 % \declaremodule[modname]{...}{mod_name} instead.
 %
-\declaremodule{}{httplib2}			% not standard, in Python
+\declaremodule{}{httplib2}                     % not standard, in Python
 
 % Portability statement:  Uncomment and fill in the parameter to specify the
 % availability of the module.  The parameter can be Unix, IRIX, SunOS, Mac,
@@ -40,10 +40,10 @@
 
 % These apply to all modules, and may be given more than once:
 
-\moduleauthor{Joe Gregorio}{joe@bitworking.org}		% Author of the module code;
-					% omit if not known.
-\sectionauthor{Joe Gregorio}{joe@bitworking.org}		% Author of the documentation,
-					% even if not a module section.
+\moduleauthor{Joe Gregorio}{joe@bitworking.org}         % Author of the module code;
+                                        % omit if not known.
+\sectionauthor{Joe Gregorio}{joe@bitworking.org}                % Author of the documentation,
+                                        % even if not a module section.
 
 
 % Leave at least one blank line after this, to simplify ad-hoc tools
@@ -60,8 +60,8 @@
 The \module{httplib2} module is a comprehensive HTTP client library with the following features:
 
 \begin{description}
-\item[HTTP and HTTPS]  HTTPS support is only available if the socket module was compiled with SSL support. 
-\item[Keep-Alive]    Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible. 
+\item[HTTP and HTTPS]  HTTPS support is only available if the socket module was compiled with SSL support.
+\item[Keep-Alive]    Supports HTTP 1.1 Keep-Alive, keeping the socket open and performing multiple requests over the same connection if possible.
 \item[Authentication] The following three types of HTTP Authentication are supported. These can be used over both HTTP and HTTPS.
     \begin{itemize}
         \item Digest
@@ -69,7 +69,7 @@ The \module{httplib2} module is a comprehensive HTTP client library with the fol
         \item WSSE
     \end{itemize}
 \item[Caching]
-    The module can optionally operate with a private cache that understands the Cache-Control: header and uses both the ETag and Last-Modified cache validators. 
+    The module can optionally operate with a private cache that understands the Cache-Control: header and uses both the ETag and Last-Modified cache validators.
 \item[All Methods]
     The module can handle any HTTP request method, not just GET and POST.
 \item[Redirects]
@@ -108,8 +108,8 @@ The default is 2.
 % the source code should be documented using this environment, but
 % constructor parameters must be omitted.
 
-The \module{httplib2} module may raise the following Exceptions. Note that 
-there is an option that turns exceptions into 
+The \module{httplib2} module may raise the following Exceptions. Note that
+there is an option that turns exceptions into
 normal responses with an HTTP status code indicating
 an error occured. See \member{Http.force_exception_to_status_code}
 
@@ -118,7 +118,7 @@ The Base Exception for all exceptions raised by httplib2.
 \end{excdesc}
 
 \begin{excdesc}{RedirectMissingLocation}
-A 3xx redirect response code was provided but no Location: header 
+A 3xx redirect response code was provided but no Location: header
 was provided to point to the new location.
 \end{excdesc}
 
@@ -153,21 +153,21 @@ are unfamiliar with.
 % ---- 3.4. ----
 % Other standard environments:
 %
-%  classdesc	- Python classes; same arguments are funcdesc
-%  methoddesc	- methods, like funcdesc but has an optional parameter 
-%		  to give the type name: \begin{methoddesc}[mytype]{name}{args}
-%		  By default, the type name will be the name of the
-%		  last class defined using classdesc.  The type name
-%		  is required if the type is implemented in C (because 
-%		  there's no classdesc) or if the class isn't directly 
-%		  documented (if it's private).
-%  memberdesc	- data members, like datadesc, but with an optional
-%		  type name like methoddesc.
+%  classdesc    - Python classes; same arguments are funcdesc
+%  methoddesc   - methods, like funcdesc but has an optional parameter
+%                 to give the type name: \begin{methoddesc}[mytype]{name}{args}
+%                 By default, the type name will be the name of the
+%                 last class defined using classdesc.  The type name
+%                 is required if the type is implemented in C (because
+%                 there's no classdesc) or if the class isn't directly
+%                 documented (if it's private).
+%  memberdesc   - data members, like datadesc, but with an optional
+%                 type name like methoddesc.
 
 \begin{classdesc}{Http}{\optional{cache=None}, \optional{timeout=None}, \optional{proxy_info=None}}
 The class that represents a client HTTP interface.
 The \var{cache} parameter is either the name of a directory
-to be used as a flat file cache, or it must an object that 
+to be used as a flat file cache, or it must an object that
 implements the required caching interface.
 The \var{timeout} parameter is the socket level timeout.
 The \var{proxy_info} is an instance of \class{ProxyInfo} and is supplied
@@ -176,9 +176,9 @@ installed for proxy support to work.
 \end{classdesc}
 
 \begin{classdesc}{Response}{info}
-Response is a subclass of \class{dict} and instances of this 
+Response is a subclass of \class{dict} and instances of this
 class are returned from calls
-to Http.request. The \var{info} parameter is either 
+to Http.request. The \var{info} parameter is either
 an \class{rfc822.Message} or an \class{httplib.HTTPResponse} object.
 \end{classdesc}
 
@@ -188,7 +188,7 @@ The \var{dir_name} parameter is
 the name of the directory to use. If the directory does
 not exist then FileCache attempts to create the directory.
 The optional \var{safe} parameter is a funtion which generates
-the cache filename for each URI. A FileCache object is 
+the cache filename for each URI. A FileCache object is
 constructed and used for caching when you pass a directory name
 into the constructor of \class{Http}.
 \end{classdesc}
@@ -197,7 +197,7 @@ into the constructor of \class{Http}.
 The parameter \var{proxy_type} must be set to one of socks.PROXY_TYPE_XXX
 constants. The \var{proxy_host} and \var{proxy_port} must be set to the location
 of the proxy. The optional \var{proxy_rdns} should be set to True if
-the DNS server on the proxy should be used. The \var{proxy_user} and 
+the DNS server on the proxy should be used. The \var{proxy_user} and
 \var{proxy_pass} are supplied when the proxy is protected by authentication.
 \end{classdesc}
 
@@ -237,7 +237,7 @@ The return value is a tuple of (response, content), the first being and instance
 \end{methoddesc}
 
 \begin{methoddesc}[Http]{add_credentials}{name, password, \optional{domain=None}}
-Adds a name and password that will be used when a request 
+Adds a name and password that will be used when a request
 requires authentication. Supplying the optional \var{domain} name will
 restrict these credentials to only be sent to the specified
 domain. If \var{domain} is not specified then the given credentials will
@@ -246,8 +246,8 @@ be used to try to satisfy every HTTP 401 challenge.
 
 \begin{methoddesc}[Http]{add_certificate}{key, cert, domain}
 Add a \var{key} and \var{cert} that will be used for an SSL connection
-to the specified domain. \var{keyfile} is the name of a PEM formatted 
-file that contains your private key. \var{certfile} is a PEM formatted certificate chain file. 
+to the specified domain. \var{keyfile} is the name of a PEM formatted
+file that contains your private key. \var{certfile} is a PEM formatted certificate chain file.
 \end{methoddesc}
 
 \begin{methoddesc}[Http]{clear_credentials}{}
@@ -301,7 +301,7 @@ is mainly to deal with broken servers which supply an etag, but change it capric
 % also used to give a filename when generating HTML.
 
 If you wish to supply your own caching implementation
-then you will need to pass in an object that supports the 
+then you will need to pass in an object that supports the
 following methods. Note that the \module{memcache} module
 supports this interface natively.
 
@@ -362,7 +362,7 @@ redirects were encountered, you can determine the ultimate URI that
 the request was sent to. All Response objects contain this key value,
 including \code{previous} responses so you can determine the entire
 chain of redirects. If \member{Http.force_exception_to_status_code} is \code{True}
-and the number of redirects has exceeded the number of allowed number 
+and the number of redirects has exceeded the number of allowed number
 of redirects then the \class{Response} object will report the error
 in the status code, but the complete chain of previous responses will
 still be in tact.
@@ -386,21 +386,21 @@ assert resp.status == 200
 assert resp['content-type'] == 'text/html'
 \end{verbatim}
 
-Here is more complex example that does a PUT 
+Here is more complex example that does a PUT
 of some text to a resource that requires authentication.
 The Http instance also uses a file cache
-in the directory \code{.cache}. 
+in the directory \code{.cache}.
 
 \begin{verbatim}
 import httplib2
 h = httplib2.Http(".cache")
 h.add_credentials('name', 'password')
-resp, content = h.request("https://example.org/chap/2", 
-    "PUT", body="This is text", 
+resp, content = h.request("https://example.org/chap/2",
+    "PUT", body="This is text",
     headers={'content-type':'text/plain'} )
 \end{verbatim}
 
-Here is an example that connects to a server that 
+Here is an example that connects to a server that
 supports the Atom Publishing Protocol.
 
 \begin{verbatim}
@@ -424,8 +424,8 @@ resp, content = h.request(uri, "POST", body=body, headers=headers)
 % Note that there is no trailing ">>> " prompt shown.
 
 Here is an example of providing data to an HTML form processor.
-In this case we presume this is a POST form. We need to take our 
-data and format it as "application/x-www-form-urlencoded" data and use that as a 
+In this case we presume this is a POST form. We need to take our
+data and format it as "application/x-www-form-urlencoded" data and use that as a
 body for a POST request.
 
 \begin{verbatim}
