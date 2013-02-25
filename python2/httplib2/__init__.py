@@ -1269,6 +1269,7 @@ and more.
                     conn.connect()
                     continue
                 else:
+                    conn.close()
                     raise
             else:
                 content = ""
