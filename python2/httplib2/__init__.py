@@ -60,7 +60,7 @@ try:
 except ImportError:
     try:
         import socks
-    except ImportError:
+    except (ImportError, AttributeError):
         socks = None
 
 # Build the appropriate socket wrapper for ssl
@@ -184,8 +184,14 @@ class CertificateHostnameMismatch(SSLHandshakeError):
 # requesting that URI again.
 DEFAULT_MAX_REDIRECTS = 5
 
-# Default CA certificates file bundled with httplib2.
-CA_CERTS = os.path.join(
+try:
+    # Users can optionally provide a module that tells us where the CA_CERTS
+    # are located.
+    import ca_certs_locater
+    CA_CERTS = ca_certs_locater.get()
+except ImportError:
+    # Default CA certificates file bundled with httplib2.
+    CA_CERTS = os.path.join(
         os.path.dirname(os.path.abspath(__file__ )), "cacerts.txt")
 
 # Which headers are hop-by-hop headers by default
@@ -1060,15 +1066,27 @@ SCHEME_TO_CONNECTION = {
 
 # Use a different connection object for Google App Engine
 try:
-    from google.appengine.api import apiproxy_stub_map
-    if apiproxy_stub_map.apiproxy.GetStub('urlfetch') is None:
-        raise ImportError  # Bail out; we're not actually running on App Engine.
-    from google.appengine.api.urlfetch import fetch
-    from google.appengine.api.urlfetch import InvalidURLError
+    try:
+        from google.appengine.api import apiproxy_stub_map
+        if apiproxy_stub_map.apiproxy.GetStub('urlfetch') is None:
+            raise ImportError  # Bail out; we're not actually running on App Engine.
+        from google.appengine.api.urlfetch import fetch
+        from google.appengine.api.urlfetch import InvalidURLError
+    except ImportError:
+        from google3.apphosting.api import apiproxy_stub_map
+        if apiproxy_stub_map.apiproxy.GetStub('urlfetch') is None:
+            raise ImportError  # Bail out; we're not actually running on App Engine.
+        from google3.apphosting.api.urlfetch import fetch
+        from google3.apphosting.api.urlfetch import InvalidURLError
 
     def _new_fixed_fetch(validate_certificate):
-        def fixed_fetch(url, payload=None, method="GET", headers={}, allow_truncated=False, follow_redirects=True, deadline=5):
-            return fetch(url, payload=payload, method=method, headers=header, allow_truncated=allow_truncated, follow_redirects=follow_redirects, deadline=deadline, validate_certificate=validate_certificate)
+        def fixed_fetch(url, payload=None, method="GET", headers={},
+                        allow_truncated=False, follow_redirects=True,
+                        deadline=5):
+            return fetch(url, payload=payload, method=method, headers=header,
+                         allow_truncated=allow_truncated,
+                         follow_redirects=follow_redirects, deadline=deadline,
+                         validate_certificate=validate_certificate)
         return fixed_fetch
 
     class AppEngineHttpConnection(httplib.HTTPConnection):
