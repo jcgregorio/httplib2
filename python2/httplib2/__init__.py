@@ -1083,7 +1083,7 @@ try:
         def fixed_fetch(url, payload=None, method="GET", headers={},
                         allow_truncated=False, follow_redirects=True,
                         deadline=5):
-            return fetch(url, payload=payload, method=method, headers=header,
+            return fetch(url, payload=payload, method=method, headers=headers,
                          allow_truncated=allow_truncated,
                          follow_redirects=follow_redirects, deadline=deadline,
                          validate_certificate=validate_certificate)
