@@ -1072,7 +1072,7 @@ try:
             raise ImportError  # Bail out; we're not actually running on App Engine.
         from google.appengine.api.urlfetch import fetch
         from google.appengine.api.urlfetch import InvalidURLError
-    except ImportError:
+    except (ImportError, AttributeError):
         from google3.apphosting.api import apiproxy_stub_map
         if apiproxy_stub_map.apiproxy.GetStub('urlfetch') is None:
             raise ImportError  # Bail out; we're not actually running on App Engine.
@@ -1118,7 +1118,7 @@ try:
         'http': AppEngineHttpConnection,
         'https': AppEngineHttpsConnection
     }
-except ImportError:
+except (ImportError, AttributeError):
     pass
 
 
