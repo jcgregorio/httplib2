@@ -1,3 +1,13 @@
+0.8
+  More fixes for the App Engine support.
+
+  Added a new feature that allows you to supply your own provider for the
+  CA_CERTS file. Just create a module named ca_certs_locater that has a method
+  get() that returns the file location of the CA_CERTS file.
+
+  Lots of clean up of the code formatting to make it more consistent.
+
+
 0.7.7
    More fixes for App Engine, now less likely to swallow important exceptions.
    Adding proxy_info_from_* methods to Python3. Reviewed in https://codereview.appspot.com/6588078/.
