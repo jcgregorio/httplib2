@@ -138,6 +138,37 @@ class _MyHTTPConnection(object):
         return _MyResponse(b"the body", status="200")
 
 
+class _MyHTTPBadStatusConnection(object):
+    "Mock of httplib.HTTPConnection that raises BadStatusLine."
+
+    num_calls = 0
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None, proxy_info=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.log = ""
+        self.sock = None
+        _MyHTTPBadStatusConnection.num_calls = 0
+
+    def set_debuglevel(self, level):
+        pass
+
+    def connect(self):
+        pass
+
+    def close(self):
+        pass
+
+    def request(self, method, request_uri, body, headers):
+        pass
+
+    def getresponse(self):
+        _MyHTTPBadStatusConnection.num_calls += 1
+        raise http.client.BadStatusLine("")
+
+
 class HttpTest(unittest.TestCase):
     def setUp(self):
         if os.path.exists(cacheDirName):
@@ -168,6 +199,19 @@ class HttpTest(unittest.TestCase):
         response, content = self.http.request("http://bitworking.org", connection_type=_MyHTTPConnection)
         self.assertEqual(response['content-location'], "http://bitworking.org")
         self.assertEqual(content, b"the body")
+
+
+    def testBadStatusLineRetry(self):
+        old_retries = httplib2.RETRIES
+        httplib2.RETRIES = 1
+        self.http.force_exception_to_status_code = False
+        try:
+            response, content = self.http.request("http://bitworking.org",
+                connection_type=_MyHTTPBadStatusConnection)
+        except http.client.BadStatusLine:
+            self.assertEqual(2, _MyHTTPBadStatusConnection.num_calls)
+        httplib2.RETRIES = old_retries
+
 
     def testGetUnknownServer(self):
         self.http.force_exception_to_status_code = False
@@ -485,7 +529,7 @@ class HttpTest(unittest.TestCase):
 
           # Test that we get a SSLHandshakeError if we try to access
           # https://www.google.com, using a CA cert file that doesn't contain
-          # the CA Gogole uses (i.e., simulating a cert that's not signed by a
+          # the CA Google uses (i.e., simulating a cert that's not signed by a
           # trusted CA).
           other_ca_certs = os.path.join(
                   os.path.dirname(os.path.abspath(httplib2.__file__ )),

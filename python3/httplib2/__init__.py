@@ -957,7 +957,10 @@ class Http(object):
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
-        for i in range(RETRIES):
+        i = 0
+        seen_bad_status_line = False
+        while i < RETRIES:
+            i += 1
             try:
                 if conn.sock is None:
                     conn.connect()
@@ -990,6 +993,19 @@ class Http(object):
                 pass
             try:
                 response = conn.getresponse()
+            except (http.client.BadStatusLine, http.client.ResponseNotReady):
+                # If we get a BadStatusLine on the first try then that means
+                # the connection just went stale, so retry regardless of the
+                # number of RETRIES set.
+                if not seen_bad_status_line and i == 1:
+                    i = 0
+                    seen_bad_status_line = True
+                    conn.close()
+                    conn.connect()
+                    continue
+                else:
+                    conn.close()
+                    raise
             except socket.timeout:
                 raise
             except (socket.error, http.client.HTTPException):

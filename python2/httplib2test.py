@@ -144,6 +144,36 @@ class _MyHTTPConnection(object):
     def getresponse(self):
         return _MyResponse("the body", status="200")
 
+class _MyHTTPBadStatusConnection(object):
+    "Mock of httplib.HTTPConnection that raises BadStatusLine."
+
+    num_calls = 0
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=None, proxy_info=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.log = ""
+        self.sock = None
+        _MyHTTPBadStatusConnection.num_calls = 0
+
+    def set_debuglevel(self, level):
+        pass
+
+    def connect(self):
+        pass
+
+    def close(self):
+        pass
+
+    def request(self, method, request_uri, body, headers):
+        pass
+
+    def getresponse(self):
+        _MyHTTPBadStatusConnection.num_calls += 1
+        raise httplib.BadStatusLine("")
+
 
 class HttpTest(unittest.TestCase):
     def setUp(self):
@@ -186,6 +216,17 @@ class HttpTest(unittest.TestCase):
         response, content = self.http.request("http://bitworking.org", connection_type=_MyHTTPConnection)
         self.assertEqual(response['content-location'], "http://bitworking.org")
         self.assertEqual(content, "the body")
+
+    def testBadStatusLineRetry(self):
+        old_retries = httplib2.RETRIES
+        httplib2.RETRIES = 1
+        self.http.force_exception_to_status_code = False
+        try:
+            response, content = self.http.request("http://bitworking.org",
+                connection_type=_MyHTTPBadStatusConnection)
+        except httplib.BadStatusLine:
+            self.assertEqual(2, _MyHTTPBadStatusConnection.num_calls)
+        httplib2.RETRIES = old_retries
 
     def testGetUnknownServer(self):
         self.http.force_exception_to_status_code = False
