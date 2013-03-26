@@ -1380,7 +1380,10 @@ class Http(object):
                         if response.status in [302, 303]:
                             redirect_method = "GET"
                             body = None
-                        (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
+                        (response, content) = self.request(
+                            location, method=redirect_method,
+                            body=body, headers=headers,
+                            redirections=redirections - 1)
                         response.previous = old_response
                 else:
                     raise RedirectLimit("Redirected more times than rediection_limit allows.", response, content)
@@ -1522,7 +1525,9 @@ class Http(object):
                     # Should cached permanent redirects be counted in our redirection count? For now, yes.
                     if redirections <= 0:
                         raise RedirectLimit("Redirected more times than rediection_limit allows.", {}, "")
-                    (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
+                    (response, new_content) = self.request(
+                        info['-x-permanent-redirect-url'], method='GET',
+                        headers=headers, redirections=redirections - 1)
                     response.previous = Response(info)
                     response.previous.fromcache = True
                 else:
