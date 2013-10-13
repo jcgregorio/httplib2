@@ -22,22 +22,27 @@ features left out of other HTTP libraries.
 * Basic
 * WSSE
 
-#Caching
+###Caching
     The module can optionally operate with a private cache that
     understands the Cache-Control: header and uses both the ETag
     and Last-Modified cache validators.
-#All Methods
+    
+###All Methods
     The module can handle any HTTP request method, not just GET
     and POST.
-#Redirects
+    
+###Redirects
     Automatically follows 3XX redirects on GETs.
-#Compression
+    
+###Compression
     Handles both 'deflate' and 'gzip' types of compression.
-#Lost update support
+    
+###Lost update support
     Automatically adds back ETags into PUT requests to resources
     we have already cached. This implements Section 3.2 of
     Detecting the Lost Update Problem Using Unreserved Checkout.
-#Unit Tested
+    
+###Unit Tested
     A large and growing set of unit tests.
 
 
