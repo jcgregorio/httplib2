@@ -60,9 +60,11 @@ Usage
 
 A simple retrieval:
 
+```python
   import httplib2
   h = httplib2.Http(".cache")
   (resp_headers, content) = h.request("http://example.org/", "GET")
+```
 
 The 'content' is the content retrieved from the URL. The content
 is already decompressed or unzipped if necessary.
