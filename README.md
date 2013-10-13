@@ -7,14 +7,14 @@ Introduction
 A comprehensive HTTP client library, httplib2.py supports many
 features left out of other HTTP libraries.
 
-#HTTP and HTTPS
+###HTTP and HTTPS
     HTTPS support is only available if the socket module was
     compiled with SSL support.
-#Keep-Alive
+###Keep-Alive
     Supports HTTP 1.1 Keep-Alive, keeping the socket open and
     performing multiple requests over the same connection if
     possible.
-#Authentication
+###Authentication
     The following three types of HTTP Authentication are
     supported. These can be used over both HTTP and HTTPS.
 
