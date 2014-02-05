@@ -24,7 +24,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Louis Nyffenegger",
     "Mark Pilgrim"]
 __license__ = "MIT"
-__version__ = "0.7.7"
+__version__ = "0.8"
 
 import re
 import sys
@@ -957,7 +957,10 @@ class Http(object):
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
-        for i in range(RETRIES):
+        i = 0
+        seen_bad_status_line = False
+        while i < RETRIES:
+            i += 1
             try:
                 if conn.sock is None:
                     conn.connect()
@@ -990,6 +993,19 @@ class Http(object):
                 pass
             try:
                 response = conn.getresponse()
+            except (http.client.BadStatusLine, http.client.ResponseNotReady):
+                # If we get a BadStatusLine on the first try then that means
+                # the connection just went stale, so retry regardless of the
+                # number of RETRIES set.
+                if not seen_bad_status_line and i == 1:
+                    i = 0
+                    seen_bad_status_line = True
+                    conn.close()
+                    conn.connect()
+                    continue
+                else:
+                    conn.close()
+                    raise
             except socket.timeout:
                 raise
             except (socket.error, http.client.HTTPException):
@@ -1073,7 +1089,9 @@ class Http(object):
                         if response.status in [302, 303]:
                           redirect_method = "GET"
                           body = None
-                        (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
+                        (response, content) = self.request(
+                            location, method=redirect_method, body=body,
+                            headers=headers, redirections=redirections - 1)
                         response.previous = old_response
                 else:
                     raise RedirectLimit("Redirected more times than redirection_limit allows.", response, content)
@@ -1208,7 +1226,9 @@ a string that contains the response entity body.
                     # Should cached permanent redirects be counted in our redirection count? For now, yes.
                     if redirections <= 0:
                         raise RedirectLimit("Redirected more times than redirection_limit allows.", {}, "")
-                    (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
+                    (response, new_content) = self.request(
+                        info['-x-permanent-redirect-url'], method='GET',
+                        headers=headers, redirections=redirections - 1)
                     response.previous = Response(info)
                     response.previous.fromcache = True
                 else:

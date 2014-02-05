@@ -28,7 +28,7 @@ testbed = testbed.Testbed()
 testbed.activate()
 testbed.init_urlfetch_stub()
 
-from google.appengine.runtime import DeadlineExceededError
+import google.appengine.api
 
 import httplib2
 
@@ -36,11 +36,6 @@ class AppEngineHttpTest(unittest.TestCase):
     def setUp(self):
         if os.path.exists(cacheDirName):
             [os.remove(os.path.join(cacheDirName, file)) for file in os.listdir(cacheDirName)]
-
-        if sys.version_info < (2, 6):
-            disable_cert_validation = True
-        else:
-            disable_cert_validation = False
 
     def test(self):
         h = httplib2.Http()
@@ -71,12 +66,30 @@ class AppEngineHttpTest(unittest.TestCase):
     #    except DeadlineExceededError:
     #      pass
 
-
-
     def test_proxy_info_ignored(self):
         h = httplib2.Http(proxy_info='foo.txt')
         response, content = h.request("http://bitworking.org")
         self.assertEquals(response.status, 200)
+
+
+class AberrationsTest(unittest.TestCase):
+    def setUp(self):
+        self.orig_apiproxy_stub_map = google.appengine.api.apiproxy_stub_map
+
+        # Force apiproxy_stub_map to None to trigger the test condition.
+        google.appengine.api.apiproxy_stub_map = None
+        reload(httplib2)
+
+    def tearDown(self):
+        google.appengine.api.apiproxy_stub_map = self.orig_apiproxy_stub_map
+        reload(httplib2)
+
+    def test(self):
+        self.assertNotEqual(httplib2.SCHEME_TO_CONNECTION['https'],
+                            httplib2.AppEngineHttpsConnection)
+        self.assertNotEqual(httplib2.SCHEME_TO_CONNECTION['http'],
+                            httplib2.AppEngineHttpConnection)
+
 
 if __name__ == '__main__':
     unittest.main()
