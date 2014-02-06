@@ -98,3 +98,7 @@ this example the second request adds the Cache-Control:
 header with a value of 'no-cache' which tells the library
 that the cached copy must not be used when handling this request.
 
+More example usage can be found at:
+
+ * https://github.com/jcgregorio/httplib2/wiki/Examples
+ * https://github.com/jcgregorio/httplib2/wiki/Examples-Python3
