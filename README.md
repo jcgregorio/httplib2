@@ -48,11 +48,8 @@ A large and growing set of unit tests.
 Installation
 ============
 
-The httplib2 module is shipped as a distutils package.  To install
-the library, unpack the distribution archive, and issue the following
-command:
 
-    $ python setup.py install
+    $ pip install httplib2
 
 
 Usage
