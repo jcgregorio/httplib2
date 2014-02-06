@@ -7,7 +7,6 @@
 
   Lots of clean up of the code formatting to make it more consistent.
 
-
 0.7.7
    More fixes for App Engine, now less likely to swallow important exceptions.
    Adding proxy_info_from_* methods to Python3. Reviewed in https://codereview.appspot.com/6588078/.
