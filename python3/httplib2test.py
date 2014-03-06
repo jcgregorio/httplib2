@@ -568,11 +568,11 @@ class HttpTest(unittest.TestCase):
     def testGet304(self):
         # Test that we use ETags properly to validate our cache
         uri = urllib.parse.urljoin(base, "304/test_etag.txt")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertNotEqual(response['etag'], "")
 
-        (response, content) = self.http.request(uri, "GET")
-        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'must-revalidate'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'cache-control': 'must-revalidate'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
 
@@ -583,26 +583,26 @@ class HttpTest(unittest.TestCase):
 
         self.assertTrue(status_line.startswith("status:"))
 
-        (response, content) = self.http.request(uri, "HEAD")
+        (response, content) = self.http.request(uri, "HEAD", headers = {'accept-encoding': 'identity'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
 
-        (response, content) = self.http.request(uri, "GET", headers = {'range': 'bytes=0-0'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'range': 'bytes=0-0'})
         self.assertEqual(response.status, 206)
         self.assertEqual(response.fromcache, False)
 
     def testGetIgnoreEtag(self):
         # Test that we can forcibly ignore ETags
         uri = urllib.parse.urljoin(base, "reflector/reflector.cgi")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertNotEqual(response['etag'], "")
 
-        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'cache-control': 'max-age=0'})
         d = self.reflector(content)
         self.assertTrue('HTTP_IF_NONE_MATCH' in d)
 
         self.http.ignore_etag = True
-        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'cache-control': 'max-age=0'})
         d = self.reflector(content)
         self.assertEqual(response.fromcache, False)
         self.assertFalse('HTTP_IF_NONE_MATCH' in d)
@@ -610,15 +610,15 @@ class HttpTest(unittest.TestCase):
     def testOverrideEtag(self):
         # Test that we can forcibly ignore ETags
         uri = urllib.parse.urljoin(base, "reflector/reflector.cgi")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertNotEqual(response['etag'], "")
 
-        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'cache-control': 'max-age=0'})
         d = self.reflector(content)
         self.assertTrue('HTTP_IF_NONE_MATCH' in d)
         self.assertNotEqual(d['HTTP_IF_NONE_MATCH'], "fred")
 
-        (response, content) = self.http.request(uri, "GET", headers = {'cache-control': 'max-age=0', 'if-none-match': 'fred'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'cache-control': 'max-age=0', 'if-none-match': 'fred'})
         d = self.reflector(content)
         self.assertTrue('HTTP_IF_NONE_MATCH' in d)
         self.assertEqual(d['HTTP_IF_NONE_MATCH'], "fred")
@@ -853,26 +853,26 @@ class HttpTest(unittest.TestCase):
     def testGetCacheControlNoCache(self):
         # Test Cache-Control: no-cache on requests
         uri = urllib.parse.urljoin(base, "304/test_etag.txt")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertNotEqual(response['etag'], "")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
 
-        (response, content) = self.http.request(uri, "GET", headers={'Cache-Control': 'no-cache'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'Cache-Control': 'no-cache'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, False)
 
     def testGetCacheControlPragmaNoCache(self):
         # Test Pragma: no-cache on requests
         uri = urllib.parse.urljoin(base, "304/test_etag.txt")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertNotEqual(response['etag'], "")
-        (response, content) = self.http.request(uri, "GET")
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, True)
 
-        (response, content) = self.http.request(uri, "GET", headers={'Pragma': 'no-cache'})
+        (response, content) = self.http.request(uri, "GET", headers = {'accept-encoding': 'identity', 'Pragma': 'no-cache'})
         self.assertEqual(response.status, 200)
         self.assertEqual(response.fromcache, False)
 
