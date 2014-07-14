@@ -749,12 +749,27 @@ class ProxyInfo(object):
     bypass_hosts = ()
 
     def __init__(self, proxy_type, proxy_host, proxy_port,
-                 proxy_rdns=None, proxy_user=None, proxy_pass=None):
-        """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
-        constants. For example:
+                 proxy_rdns=True, proxy_user=None, proxy_pass=None):
+        """
+        Args:
+          proxy_type: The type of proxy server.  This must be set to one of
+          socks.PROXY_TYPE_XXX constants.  For example:
 
-        p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP,
-            proxy_host='localhost', proxy_port=8000)
+            p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP,
+              proxy_host='localhost', proxy_port=8000)
+
+          proxy_host: The hostname or IP address of the proxy server.
+
+          proxy_port: The port that the proxy server is running on.
+
+          proxy_rdns: If True (default), DNS queries will not be performed
+          locally, and instead, handed to the proxy to resolve.  This is useful
+          if the network does not allow resolution of non-local names.  In
+          httplib2 0.9 and earlier, this defaulted to False.
+
+          proxy_user: The username used to authenticate with the proxy server.
+
+          proxy_pass: The password used to authenticate with the proxy server.
         """
         self.proxy_type = proxy_type
         self.proxy_host = proxy_host
@@ -871,12 +886,12 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
         if self.proxy_info and self.proxy_info.isgood():
             use_proxy = True
             proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
-        else:
-            use_proxy = False
-        if use_proxy and proxy_rdns:
+
             host = proxy_host
             port = proxy_port
         else:
+            use_proxy = False
+
             host = self.host
             port = self.port
 
@@ -993,12 +1008,12 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         if self.proxy_info and self.proxy_info.isgood():
             use_proxy = True
             proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
-        else:
-            use_proxy = False
-        if use_proxy and proxy_rdns:
+
             host = proxy_host
             port = proxy_port
         else:
+            use_proxy = False
+
             host = self.host
             port = self.port
 
