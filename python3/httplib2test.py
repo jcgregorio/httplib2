@@ -1235,6 +1235,12 @@ class HttpPrivateTest(unittest.TestCase):
         self.assertTrue('cache-control' in h)
         self.assertTrue('other' in h)
         self.assertEqual('Stuff', h['other'])
+    
+    def testConvertByteStr(self):
+        with self.assertRaises(TypeError):
+            httplib2._convert_byte_str(4)
+        self.assertEqual('Hello World', httplib2._convert_byte_str(b'Hello World'))
+        self.assertEqual('Bye World', httplib2._convert_byte_str('Bye World'))
 
     def testExpirationModelTransparent(self):
         # Test that no-cache makes our request TRANSPARENT
