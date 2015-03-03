@@ -192,8 +192,13 @@ def safename(filename):
 
 NORMALIZE_SPACE = re.compile(r'(?:\r\n)?[ \t]+')
 def _normalize_headers(headers):
-    return dict([ (key.lower(), NORMALIZE_SPACE.sub(value, ' ').strip())  for (key, value) in headers.items()])
+    return dict([ (_convert_byte_str(key).lower(), NORMALIZE_SPACE.sub(_convert_byte_str(value), ' ').strip())  for (key, value) in headers.items()])
 
+def _convert_byte_str(s):
+    if not isinstance(s, str):
+        return str(s, 'utf-8')
+    return s
+    
 def _parse_cache_control(headers):
     retval = {}
     if 'cache-control' in headers:
