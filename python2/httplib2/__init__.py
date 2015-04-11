@@ -22,7 +22,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
                     "Sam Ruby",
                     "Louis Nyffenegger"]
 __license__ = "MIT"
-__version__ = "0.9"
+__version__ = "0.9.1"
 
 import re
 import sys
@@ -1496,7 +1496,7 @@ class Http(object):
             info = email.Message.Message()
             cached_value = None
             if self.cache:
-                cachekey = defrag_uri
+                cachekey = defrag_uri.encode('utf-8')
                 cached_value = self.cache.get(cachekey)
                 if cached_value:
                     # info = email.message_from_string(cached_value)

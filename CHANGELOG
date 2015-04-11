@@ -1,5 +1,16 @@
 0.9.1
 
+  Fixes in this release:
+
+    https://github.com/jcgregorio/httplib2/pull/296
+
+        There was a problem with headers when a binary string is passed (like
+        b'Authorization').
+
+    https://github.com/jcgregorio/httplib2/pull/276
+
+        Default to doing DNS resolution through a proxy server if present.
+
 0.9
   Heartbleed
 
