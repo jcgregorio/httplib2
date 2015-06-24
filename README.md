@@ -58,9 +58,9 @@ Usage
 A simple retrieval:
 
 ```python
-  import httplib2
-  h = httplib2.Http(".cache")
-  (resp_headers, content) = h.request("http://example.org/", "GET")
+import httplib2
+h = httplib2.Http(".cache")
+(resp_headers, content) = h.request("http://example.org/", "GET")
 ```
 
 The 'content' is the content retrieved from the URL. The content
@@ -69,22 +69,22 @@ is already decompressed or unzipped if necessary.
 To PUT some content to a server that uses SSL and Basic authentication:
 
 ```python
-  import httplib2
-  h = httplib2.Http(".cache")
-  h.add_credentials('name', 'password')
-  (resp, content) = h.request("https://example.org/chapter/2",
+import httplib2
+h = httplib2.Http(".cache")
+h.add_credentials('name', 'password')
+(resp, content) = h.request("https://example.org/chapter/2",
                             "PUT", body="This is text",
                             headers={'content-type':'text/plain'} )
-```                            
+```
 
 Use the Cache-Control: header to control how the caching operates.
 
 ```python
-  import httplib2
-  h = httplib2.Http(".cache")
-  (resp, content) = h.request("http://bitworking.org/", "GET")
-  ...
-  (resp, content) = h.request("http://bitworking.org/", "GET",
+import httplib2
+h = httplib2.Http(".cache")
+(resp, content) = h.request("http://bitworking.org/", "GET")
+...
+(resp, content) = h.request("http://bitworking.org/", "GET",
                             headers={'cache-control':'no-cache'})
 ```
 
