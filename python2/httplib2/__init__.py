@@ -1285,6 +1285,8 @@ class Http(object):
                     err = getattr(e, 'args')[0]
                 else:
                     err = e.errno
+                if err == errno.ECONNREFUSED: # Connection refused
+                    raise
                 if err in (errno.ENETUNREACH, errno.EADDRNOTAVAIL) and i < RETRIES:
                     continue  # retry on potentially transient socket errors
                 raise
